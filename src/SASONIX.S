@@ -8,40 +8,40 @@
 * now it only uses two registers.
 
 
-MFP	EQU	$FFFA00
-IERA	EQU	MFP+$07
-IERB	EQU	MFP+$09
-IPRA	EQU	MFP+$0B
-ISRA	EQU	MFP+$0F
-IMRA	EQU	MFP+$13
-IMRB	EQU	MFP+$15
-VECTOR	EQU	MFP+$17
-TACR	EQU	MFP+$19
-TADR	EQU	MFP+$1F
-ISRVEC	EQU	$134
+mfp	equ	$fffa00
+iera	equ	mfp+$07
+ierb	equ	mfp+$09
+ipra	equ	mfp+$0b
+isra	equ	mfp+$0f
+imra	equ	mfp+$13
+imrb	equ	mfp+$15
+vector	equ	mfp+$17
+tacr	equ	mfp+$19
+tadr	equ	mfp+$1f
+isrvec	equ	$134
 _reverse: dc.w 0
 *
 *	THE SOUND CHIP
 *
-SCREG	EQU	$FF8800	CHIP REGISTER SELECT
-SCDATA	EQU	$FF8802	REGISTER DATA
+screg	equ	$ff8800	; chip register select
+scdata	equ	$ff8802	; register data
 
-*	BDOS EQUATES (TRAP #1)
+*	bdos equates (trap #1)
 
-P_TERM_OLD EQU	0	
-F_SUPER  EQU	$20
+p_term_old equ	0	
+f_super  equ	$20
 
-*	BIOS EQUATES (TRAP #13)
+*	bios equates (trap #13)
 
-GETMPB	 EQU	0
-BCONSTAT EQU	1
-BCONIN	 EQU	2
-BCONOUT	 EQU	3
+getmpb	 equ	0
+bconstat equ	1
+bconin	 equ	2
+bconout	 equ	3
 
-*	CARTRIDGE PORT ADDRESSES
+*	cartridge port addresses
 
-INPUT	EQU	$FB0001
-OUTPUT	EQU	$FA0000
+input	equ	$fb0001
+output	equ	$fa0000
 
 oh_goaty: move.l #inull,$120
  bsr init_sample
@@ -50,18 +50,18 @@ oh_g1: tst.b inuse
  bne oh_g1
  bra oh_g2
  
-play_sample:	MOVE.L	CURSRLO,sa_pt	PASS START OF REPLAY
-	MOVE.L	CURSRHI,d6	& END
-	ST	INUSE		FLAG INTS IN USE
-	SF	OPTION		WE ARE NOT SAMPLING
+play_sample:	move.l	cursrlo,sa_pt	; PASS START OF REPLAY
+	move.l	cursrhi,d6	; & end
+	st	inuse	; 	flag ints in use
+	sf	option; 		we are not sampling
  	tst _reverse		;backsamples
 	bne do_revr
-	LEA	IREPLAY,A0	SET UP THE ROUTINE
-	Bra	SETINT		AND DO IT
+	lea	ireplay,a0; 	set up the routine
+	bra	setint; 		and do it
 
 
-do_revr:	LEA	IREPLAYr,A0	SET UP THE ROUTINE
-	Bra	SETINT		AND DO IT
+do_revr:	lea	ireplayr,a0	; set up the routine
+	bra	setint; 		and do it
 
 cursrlo: dc.l sample
 cursrhi: dc.l samend
@@ -81,15 +81,15 @@ isamp: move.w sr,d1
  and #%0101100011100000,d1
  or.W #$2700,d1
  move d1,sr
-	LEA	INULL,A0
-	BSR	SETINT		SET NULL INTERRUPT ADDRESS
-;	MOVEQ	#0,D0		SET INITIAL FREQUENCY
-;	BSR	SETFREQ
-	BSR	ENABMFP		SET THE MFP RUNNING
-	BSR	SETSND		SET UP SOUND REGISTERS
+	lea	inull,a0
+	bsr	setint; 		set null interrupt address
+;	moveq	#0,d0; 		set initial frequency
+;	bsr	setfreq
+	bsr	enabmfp	; 	set the mfp running
+	bsr	setsnd	; 	set up sound registers
 	
-	SF	XTERNAL		SET THE MODE FOR INTERNAL ATARI USE
-	BSR	INTREGS		SET UP INTERNAL REGISTERS
+	sf	xternal	; 	set the mode for internal atari use
+	bsr	intregs	; 	set up internal registers
 ;	MOVE.W	#$3200,SR	ENABLE THE INTERRUPTS
  move (a7)+,d1
  move d1,sr
@@ -120,7 +120,7 @@ isamp: move.w sr,d1
 *     THE NULL INTERRUPT ROUTINE       *
 ****************************************
 
-INULL	RTE
+inull:	rte
 
 
 ****************************************
@@ -145,7 +145,7 @@ irek: 	move #0,d0
 	movem.l (a7)+,d0/a0
 	RTE
 
-IREPLAYr: movem.l d0/a0,-(a7) 
+ireplayr: movem.l d0/a0,-(a7) 
 	move.l sa_pt(pc),a0
 	clr d0
 	move.b (a0),d0
@@ -154,7 +154,7 @@ IREPLAYr: movem.l d0/a0,-(a7)
 	bra irep
 
 trp: dc.w 0
-SND_OUT	dc.w	$80c,$90b,$a09,0,$80c,$90b,$a09,0
+snd_out:	dc.w	$80c,$90b,$a09,0,$80c,$90b,$a09,0
 	dc.w	$80d,$908,$a08,0,$80b,$90b,$a0b,0
 	dc.w	$80d,$909,$a05,0,$80c,$90b,$a08,0
 	dc.w	$80d,$909,$a02,0,$80d,$908,$a06,0
@@ -298,16 +298,16 @@ SND_OUT	dc.w	$80c,$90b,$a09,0,$80c,$90b,$a09,0
 	dc.w	$80d,$90a,$a04,0,$80d,$90a,$a02,0
 	dc.w	$80d,$909,$a08,0,$80d,$909,$a08,0
 
-HALTREP move sr,d0
+haltrep: move sr,d0
  move d0,-(a7)
  and #%0101100011100000,d0
- or.W #$2700,d0
+ or.w #$2700,d0
  move d0,sr
-	LEA	INULL,A0	REMOVE REPLAY INT.
-	BSR	SETINT
-	SF	INUSE
+	lea	inull,a0;	remove replay int.
+	bsr	setint
+	sf	inuse
 	move (a7)+,d0
-	MOVE.W	d0,SR
+	move.w	d0,sr
 	movem.l (a7)+,d0-d1/a0
 	RTE
 
@@ -322,15 +322,15 @@ HALTREP move sr,d0
 *  table must be located within 256 BYTES of the code for it to work.
 *  Our Thanks to Andy Beveridge for the improved sound tables & code.
 *
-INTOUTP AND.W	#$00FF,D7	MASK OFF RUBBISH
-	ADD.B	#$80,D7		COMPLENT VALUE
-	LSL.W	#3,D7		DOUBLE LONG WORD OFFSET
-	MOVE.L	0(A3,D7.W),D5	GET DATA #1
-	MOVE.W	4(A3,D7.W),D4	GET DATA #2
-	MOVEP.L	D5,0(A4)	PLAY #1
-	MOVEP.W	D4,0(A4)	PLAY #2
+intoutp: and.w	#$00ff,d7 ;	mask off rubbish
+	add.b	#$80,d7	 ;	complent value
+	lsl.w	#3,d7	 ;	double long word offset
+	move.l	0(a3,d7.w),d5 ;	get data #1
+	move.w	4(a3,d7.w),d4	 ;get data #2
+	movep.l	d5,0(a4)	 ;play #1
+	movep.w	d4,0(a4)	 ;play #2
 	movem.l (a7)+,d0-d7/a0-a6
-	RTE
+	rte
 *
 *  The following code plays the sounds out through the REPLAY port.
 *  Simply get the byte, multiply by 2 and read from the output port
@@ -339,10 +339,10 @@ INTOUTP AND.W	#$00FF,D7	MASK OFF RUBBISH
 *  68000 does not have an address line AD0 as such, hence the LSL
 *  (we would lose the least significant BIT otherwise !!).
 *
-EXTOUTP	AND.W	#$00FF,D7	REMOVE RUBBISH
-	LSL.W	#1,D7		PRESERVE L.S.B.
-	MOVE.B	0(A4,D7.W),D7	PLAY OUT BY READING IN !!
-	RTE
+extoutp:	and.w	#$00ff,d7 ;	remove rubbish
+	lsl.w	#1,d7	 ;	preserve l.s.b.
+	move.b	0(a4,d7.w),d7 ;	play out by reading in !!
+	rte
 
 
 *****************************************
@@ -352,17 +352,17 @@ EXTOUTP	AND.W	#$00FF,D7	REMOVE RUBBISH
 *   SET UP SELECTED INTERRUPT WITH A0.L
 *   CONTAINING THE NEW ROUTINE VECTOR.
 *
-SETINT 	MOVE.W	SR,D0		SAVE SYSTEM STATUS
+setint: 	move.w	sr,d0		;save system status
 	move d0,-(a7)
  and #%0101100011100000,d0
- or.W #$2700,d0
+ or.w #$2700,d0
  move d0,sr
-;	MOVE.W	#$2700,SR	INTERRUPTS OFF
+;	move.w	#$2700,sr	interrupts off
 
-	MOVE.L	A0,ISRVEC	INSTALL NEW ROUTINE
+	move.l	a0,isrvec;	install new routine
 	move (a7)+,d0
-	MOVE.W	D0,SR		RE-ASSERT OLD STATUS
-	RTS
+	move.w	d0,sr	;	re-assert old status
+	rts
 
 *****************************************
 *       SET UP MFP FREQUENCY            *
@@ -372,95 +372,95 @@ SETINT 	MOVE.W	SR,D0		SAVE SYSTEM STATUS
 *   ENTER WITH D0.W SET WITH A FREQUENCY NUMBER 0 TO 7
 *   E.G. D0.W = $0002 GETS 3RD MFP DATA FROM TABLE
 *
-SETFREQ 
-	MOVE.B	#0,TACR		DISABLE TIMER
-	AND.W	#7,D0		ENSURE 0-7
-	MOVE.W	D0,FREQNUM	SAVE FOR PROSPERITY
-	LEA	FREQTAB,A0	GET THE FREQUENCY XREF ADDR
-	LSL.W	#1,D0		CONVERT TO WORD TABLE OFFSET
-	MOVE.W	0(A0,D0.W),D0	& GET THE MFP DATA
-	MOVE.B	D0,TACR		LSB = CONTROL REG BYTE
-	LSR.W	#8,D0		SHIFT DOWN NEXT BYTE
- 	MOVE.B	D0,TADR		NEXT = DATA REG BYTE
-	RTS
+setfreq: 
+	move.b	#0,tacr	;	disable timer
+	and.w	#7,d0	;	ensure 0-7
+	move.w	d0,freqnum	;save for prosperity
+	lea	freqtab,a0	;get the frequency xref addr
+	lsl.w	#1,d0	;	convert to word table offset
+	move.w	0(a0,d0.w),d0 ;	& get the mfp data
+	move.b	d0,tacr ;		lsb = control reg byte
+	lsr.w	#8,d0	; 	shift down next byte
+ 	move.b	d0,tadr	;	next = data reg byte
+	rts
 
 ***********************************
 *       ENABLE THE MFP            *
 ***********************************
 
-ENABMFP
-	MOVE.B	#$20,IMRA
-;	MOVE.B	#0,IMRB		;comment these 2 lines out
-	MOVE.B	#$20,IERA	
-;	MOVE.B	#0,IERB		;if you are running HBL
-	BCLR.B	#3,VECTOR
-	RTS
+enabmfp:
+	move.b	#$20,imra
+;	move.b	#0,imrb		;comment these 2 lines out
+	move.b	#$20,iera	
+;	move.b	#0,ierb		;if you are running hbl
+	bclr.b	#3,vector
+	rts
 
 *****************************************
 *    SET UP THE SOUND CHIP CHANNELS     *
 *****************************************
 
-SETSND 	MOVE.B	#0,SCREG	CHANNEL A
-	MOVE.B	#0,SCDATA
-	MOVE.B	#1,SCREG
-	MOVE.B	#0,SCDATA
+setsnd: 	move.b	#0,screg;	channel a
+	move.b	#0,scdata
+	move.b	#1,screg
+	move.b	#0,scdata
 
-	MOVE.B	#2,SCREG	CHANNEL B
-	MOVE.B	#0,SCDATA
-	MOVE.B	#3,SCREG
-	MOVE.B	#0,SCDATA
+	move.b	#2,screg	;channel b
+	move.b	#0,scdata
+	move.b	#3,screg
+	move.b	#0,scdata
 
-	MOVE.B	#4,SCREG	CHANNEL C
-	MOVE.B	#0,SCDATA
-	MOVE.B	#5,SCREG
-	MOVE.B	#0,SCDATA
+	move.b	#4,screg	;channel c
+	move.b	#0,scdata
+	move.b	#5,screg
+	move.b	#0,scdata
 
-	MOVE.B	#7,SCREG	SET UP CHANNEL MIXING & PORT 'A' I/O
-	MOVE.B	#$FF,SCDATA
+	move.b	#7,screg	;set up channel mixing & port 'a' i/o
+	move.b	#$ff,scdata
 ;	move.b #$cf,scdata
-	MOVE.B	#8,SCREG	SET ALL VOLUMES TO ZERO
-	MOVE.B	#0,SCDATA
-	MOVE.B	#9,SCREG
-	MOVE.B	#0,SCDATA
-	MOVE.B	#10,SCREG
-	MOVE.B	#0,SCDATA
-	RTS
+	move.b	#8,screg	;set all volumes to zero
+	move.b	#0,scdata
+	move.b	#9,screg
+	move.b	#0,scdata
+	move.b	#10,screg
+	move.b	#0,scdata
+	rts
 	
 ***************************************
 *    SET UP REGS. FOR INTERNAL        *
 ***************************************
 
-INTREGS MOVE.W	SR,D0
+intregs: move.w	sr,d0
  move d0,-(a7)
  and #%0101100011100000,d0
- or.W #$2700,d0
+ or.w #$2700,d0
  move d0,sr
-;	MOVE.W	#$2700,SR
-	SF	XTERNAL
-	LEA.L	INTOUTP,A5	INSTALL OUTPUT ROUTINE
-	MOVE.L	#SCREG,A4	SOUND CHIP CNTRL REG
-	LEA.L	SND_OUT,A3	LOOK UP TABLES
-	MOVEQ	#0,D7
+;	move.w	#$2700,sr
+	sf	xternal
+	lea.l	intoutp,a5;	install output routine
+	move.l	#screg,a4;	sound chip cntrl reg
+	lea.l	snd_out,a3;	look up tables
+	moveq	#0,d7
 	move (a7)+,d0
-	MOVE.W	D0,SR
-	RTS
+	move.w	d0,sr
+	rts
 
 *****************************************
 *     SET UP REGISTERS FOR EXTERNAL     *
 *****************************************
 
-EXTREGS
-	RTS
+extregs:
+	rts
 
 *
 * THE FOLLOWING NOT ALLOWED DURING INTERRUPTS
 *
-CHKINTS TST.B	INUSE		INTS RUNNING ?
-	BNE	DECEXIT		LEAVE NOW IF YES
+chkints: tst.b	inuse	;	ints running ?
+	bne	decexit	;	leave now if yes
 
 *	ETC...ETC
 
-DECEXIT	RTS
+decexit:	rts
 
 
 ***********************************
@@ -468,32 +468,32 @@ DECEXIT	RTS
 ***************************************
 *    Internal sound lookup table.     *
 ***************************************
-	EVEN
+even
 
 
 **************************************
 *       MFP/FREQUENCY TABLE          *
 ************************************** 0506  
-	EVEN
-FREQTAB dc.w $0507	;REAL slow
-	DC.W	$0506	4.9 KHZ
-	DC.W	$0505	7.68 KHZ
-	DC.W	$0404	9.6 KHZ
-	DC.W	$1F01	19.8 KHZ
-	DC.W	$0802	30.7 KHZ
-	DC.W	$0106	
-	DC.W	$0106
+even
+freqtab: dc.w $0507	;real slow
+	dc.w	$0506;	4.9 khz
+	dc.w	$0505;	7.68 khz
+	dc.w	$0404;	9.6 khz
+	dc.w	$1f01;	19.8 khz
+	dc.w	$0802;	30.7 khz
+	dc.w	$0106	
+	dc.w	$0106
 
 **************************************
 *	DEFINE PROGRAM STORAGE       *
 **************************************
 	EVEN
-XTERNAL	DS.B	1	$FF = EXTERNAL O/P SELECTED
-INUSE	DS.B	1	INTERRUPT IN USE FLAG
-OPTION	DS.B	1	INT. OPTION  $FF = SAMPLE
-	EVEN
-FREQNUM	DS.W	1	FREQUENCY SELECTED
-MFPMEM	DS.B	8	SAVED MFP DATA
+xternal:	ds.b	1	; $ff ; = external o/p selected
+inuse:	ds.b	1	; interrupt in use flag
+option:	ds.b	1	; int. option  $ff = sample
+	even
+freqnum:	ds.w	1; 	frequency selected
+mfpmem:	ds.b	8	; saved mfp data
 
 **************************************
 *      USER PROGRAM STACK HERE.      *
@@ -608,7 +608,7 @@ samtab:
 
 sa_pt equ asap+2
 
-sample: incbin f:\sonix2.spl
+sample: incbin "src/sonix2.spl"
 	even
 samend: dc.w 0
 
