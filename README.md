@@ -1,12 +1,22 @@
 # Llamatron:2112 by Jeff Minter
 
+This is the 'rude' version of Llamatron by Jeff Minter.
 
-## Requirements
+
+## To Just Play It
 
 ### Install the Hatari emulator
 ```sh
 sudo apt install hatari
 ```
+
+### Play the Game
+
+```sh
+hatari --tos utils/etos1024k.img --machine ste --memsize 14 --cpuclock 32 llamatron.prg 
+```
+
+## To Build the Sources
 
 ### Build the assembler toolchain
 
@@ -44,3 +54,7 @@ To just compile the game and get a binary (`llamatron.prg`) do:
 $ make 
 ```
 
+## Notes on the Sources
+
+## Thanks
+@gingerbeardman for providing [https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents](the sources) and a copy of the [rude binaries](orig/).
