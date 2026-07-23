@@ -57,4 +57,4 @@ $ make
 ## Notes on the Sources
 
 ## Thanks
-@gingerbeardman for providing [https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents](the sources) and a copy of the [rude binaries](orig/).
+@gingerbeardman for pointing me to [the sources](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents) and a copy of the [rude binaries](orig/).
