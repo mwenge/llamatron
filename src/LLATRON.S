@@ -644,11 +644,11 @@ tw: tst sampri
  bsr doscore
  bra nxlvl
 
-warpmes: dc.b '\\g',0,70,'\\c1\\qwarp five levels',0,'\r\r'
-	dc.b '\\qbonus 50,000 points',0,'\e'  
+warpmes: dc.b '\\g',0,70,'\\c1\\qwarp five levels',0,'\\r\\r'
+	dc.b '\\qbonus 50,000 points',0,'\\e'  
 
-herdmes: dc.b '\\g',0,175,'\\c1\\qherd wave',0,'\e'
-demes: dc.b '\\g',0,185,'\\c1\\qdemo - press fire',0,'\e'
+herdmes: dc.b '\\g',0,175,'\\c1\\qherd wave',0,'\\e'
+demes: dc.b '\\g',0,185,'\\c1\\qdemo - press fire',0,'\\e'
 
 
 blight: dc.w 0
@@ -1377,7 +1377,7 @@ invis: move #500,inviso
  move #25,d0
  move #2,d1
  move #10,d2
- bsr sonic
+ jsr sonic
  rts
 
 smbom: move #1,blight
@@ -1385,7 +1385,7 @@ smbom: move #1,blight
  move #16,d0
  move #1,d1
  move #10,d2
- bra sonic
+ jmp sonic
 
 smartflasf: dc.w $777,$666,$555,$444,$333,$222,$111,0
 
@@ -7951,9 +7951,9 @@ print:
 ; Commands are preceded by a \ character. The following
 ; are recognized:
 ;
-; \r  CR/LF
-; \e  End printing
-; \u, \d, \l, \r  Move print position up, down, left, right
+; \\r  CR/LF
+; \\e  End printing
+; \u, \d, \l, \\r  Move print position up, down, left, right
 ; \\s Set font # (follow with numeric)
 ; \\g Go to screen position (follow with 2 numerics)
 ; \n Print current value of NUMVAL.S, no trailing spaces
@@ -8821,11 +8821,11 @@ getloke: move d3,d1
  rts
 
 entxt: dc.b '\\g',0,170,'\\c1\\qcongratewelations!',0
-	dc.b '\r\\c2\\qenter something wonderful:',0
-	dc.b '\e'
+	dc.b '\\r\\c2\\qenter something wonderful:',0
+	dc.b '\\e'
 enlegal: dc.b 'abcdefghijklmnopqrstuvwxyz !.?,$*'
 entxt1: dc.b '\\c3\\g',0,0,'\\q'
-enty: dc.b '--------',0,'\e'
+enty: dc.b '--------',0,'\\e'
 show_scores: bsr setfwait
  move.l #hssa,slptr
  move.l #hssa,slbase
@@ -9076,12 +9076,12 @@ faddr: dc.l 0
 hsname: dc.b 'scores.yak',0
 
 
-include "src/SASONIX.S"
 include "src/TENTACLE.S"
+include "src/SASONIX.S"
 
 
 
-hiscm: dc.b '\\g',10,5,'\\c1\\qbestest beastie blasters',0,'\e'
+hiscm: dc.b '\\g',10,5,'\\c1\\qbestest beastie blasters',0,'\\e'
 
 
 hiscores: dc.b '00050000inspiral'
@@ -9149,60 +9149,60 @@ txtmsks: dc.w 0,0,0,0
  dc.w -1,-1,-1,-1
 scroll_buffer: ds.b 160*20
 
-font: incbin "src/fonte.s" ;i:\\gamecore\fonte.s
+font: include "src/fonte.s" ;i:\\gamecore\fonte.s
 
-testtxt: dc.b '\\g',16,0,'\\c1this is a test!!!\r\r'
-	dc.b 'marys crying for her baby\rfor her baby doll\r'
-	dc.b 'aaaaaaaaaaaahhhhhhhh commercial rain\r\r\r'
-	dc.b '\\c0inspiral carpets\r'
-	dc.b '\\c1inspiral carpets\r'
-	dc.b '\\c2inspiral carpets\r'
-	dc.b '\\c3inspiral carpets\r'
-	dc.b '\\c4inspiral carpets\r'
-	dc.b '\r\rabcdefghijklmnopqrstuvwxyz\r'
+testtxt: dc.b '\\g',16,0,'\\c1this is a test!!!\\r\\r'
+	dc.b 'marys crying for her baby\\rfor her baby doll\\r'
+	dc.b 'aaaaaaaaaaaahhhhhhhh commercial rain\\r\\r\\r'
+	dc.b '\\c0inspiral carpets\\r'
+	dc.b '\\c1inspiral carpets\\r'
+	dc.b '\\c2inspiral carpets\\r'
+	dc.b '\\c3inspiral carpets\\r'
+	dc.b '\\c4inspiral carpets\\r'
+	dc.b '\\r\\rabcdefghijklmnopqrstuvwxyz\\r'
 	dc.b '0123456789 ? "llama" (goat) fuck!!'
-	dc.b '\r\r\r\r\r\e'
+	dc.b '\\r\\r\\r\\r\\r\\e'
 
-version: dc.b '\\c',15,'llamatron version 1.0\r\r\\c1'
-	dc.b 'this version at 20 march 1991\r\r\\c2'
+version: dc.b '\\c',15,'llamatron version 1.0\\r\\r\\c1'
+	dc.b 'this version at 20 march 1991\\r\\r\\c2'
 	dc.b '!!!read scroller at title screen for play details '
 	dc.b '(wait 1 min for scroller to happen)\\c2'
-	dc.b '\r\r\\c3use joystick to move beastie.  firing is '
+	dc.b '\\r\\r\\c3use joystick to move beastie.  firing is '
 	dc.b 'automatic in the direction of travel. you use the '
 	dc.b 'fire button to lock the fire angle - so you can move '
-	dc.b 'and fire in opposite directions at will.\r\r\\c4'
+	dc.b 'and fire in opposite directions at will.\\r\\r\\c4'
 	dc.b 'if you have a suitable arrangement of two joysticks, '
 	dc.b 'you can play the game in original robotron style, with '
 	dc.b 'the usual stick moving the llama and stick 2 aiming '
 	dc.b 'the shots. press fire on stick 2 instead of stick 1 '
-	dc.b 'to start a game in that mode.\r\r'
+	dc.b 'to start a game in that mode.\\r\\r'
 	dc.b 'within game press \\c1p\\c3 to pause the game. in the '
 	dc.b 'pausemode \\c1h\\c3 toggles 50/60 hz, \\c1s\\c3 turns '
 	dc.b 'samples on/off, \\c1t\\c3 displays an ozric tentacle '
 	dc.b 'you can weird with all of joystick 1, \\c1g\\c3 redisplays '
 	dc.b 'the game screen if you"ve been looking at the tentacle, '
-	dc.b 'and \\c1o\\c3 unpauses the game!\r\r' 
+	dc.b 'and \\c1o\\c3 unpauses the game!\\r\\r' 
 	dc.b 'mission: rescue beasties and \\c1kill\\c3 everything else '
-	dc.b '(where possible).\r\r\r'
+	dc.b '(where possible).\\r\\r\\r'
 	dc.b '\\c2get beasties for bonus and \\c1hot bullets\\c2 - '
 	dc.b 'they last for a couple of seconds and slice through all '
-	dc.b 'enemies like a cat through butter.\r\r\r'
+	dc.b 'enemies like a cat through butter.\\r\\r\\r'
 	dc.b 'collect \\c1last \\c2beastie for special bonus'
-	dc.b '\r\r\r'
+	dc.b '\\r\\r\\r'
 	dc.b 'collect \\c1hearts\\c2 to make all the little beasties '
-	dc.b 'fall in love with you - they run towards you!\r\r'
+	dc.b 'fall in love with you - they run towards you!\\r\\r'
 	dc.b 'game makes 160-byte file for hiscores on yer current '
 	dc.b 'dir.'
-	dc.b '\r\\c',15,'good luck!!!'
-	dc.b '\r\r\r\r\r\r\r\r\r\r\r\r\e'
+	dc.b '\\r\\c',15,'good luck!!!'
+	dc.b '\\r\\r\\r\\r\\r\\r\\r\\r\\r\\r\\r\\r\\e'
 
-credits: dc.b '\\c1\\qllamatron:  2112',0,'\r\r\r'
-	dc.b 'perpetrated by: \\c3yak\\c1\r'
-	dc.b 'coded on: \\c3devpac developer\\c1\r'
-	dc.b 'samples grabbed with: \\c3replay-8\\c1\r\r'
+credits: dc.b '\\c1\\qllamatron:  2112',0,'\\r\\r\\r'
+	dc.b 'perpetrated by: \\c3yak\\c1\\r'
+	dc.b 'coded on: \\c3devpac developer\\c1\\r'
+	dc.b 'samples grabbed with: \\c3replay-8\\c1\\r\\r'
 	dc.b 'guest appearences by: \\c3m c urtis, '
 	dc.b 'sween "e" todd and andy "rubber chicken" capon '
-	dc.b 'on \\c1"oh f. . !"\\c3 sample\r\r'
+	dc.b 'on \\c1"oh f. . !"\\c3 sample\\r\\r'
 	dc.b '\\c1programmer entertained by: \\c3inspiral carpets, '
 	dc.b 'floyd, charlatans, faith no more, house of '
 	dc.b 'love, inspiral carpets, lemmings, thunderstrike '
@@ -9210,7 +9210,7 @@ credits: dc.b '\\c1\\qllamatron:  2112',0,'\r\r\r'
 	dc.b 'pizza power, blizzard skis and salomon boots, ozric '
 	dc.b 'tentacles, the grateful dead, the handy hendy bendy '
 	dc.b 'mandy generator, devil crash on the pc engine, and '
-	dc.b 'loads more funky stuff!\r\r\\c1\\qyak 1991',0,'\r\r\r\r\r\r\r\r\r\r\e'
+	dc.b 'loads more funky stuff!\\r\\r\\c1\\qyak 1991',0,'\\r\\r\\r\\r\\r\\r\\r\\r\\r\\r\\e'
 
 
 story: dc.b '\\c3in the space year'
@@ -9219,81 +9219,81 @@ story: dc.b '\\c3in the space year'
 	dc.b 'force of cybernetic and genetically-enhanced '
 	dc.b '"\\c1grunt\\c3" soldiers, the fiends set about '
 	dc.b 'systematically destroying every last sheep, goat, '
-	dc.b 'camel and llama on the face of the planet.\r\r'
+	dc.b 'camel and llama on the face of the planet.\\r\\r'
 	dc.b '\\c',12,'against this awesome force, we have a '
-	dc.b 'devastating (and extremely furry) secret weapon. . .\r\r'
-	dc.b '\\c1\\ql l a m a t r o n',0,'\r\r'
+	dc.b 'devastating (and extremely furry) secret weapon. . .\\r\\r'
+	dc.b '\\c1\\ql l a m a t r o n',0,'\\r\\r'
 	dc.b '\\g',104,6,'\\s',0,13
 	dc.b '\\s',0,14,'\\s',0,15,'\\s',0,16,'\\s',0,17,'\\s',0,18
-	dc.b '\\s',0,19,'\\s',0,20,'\r\r'
+	dc.b '\\s',0,19,'\\s',0,20,'\\r\\r'
 	dc.b '\\g',16,6,'\\c1llamatron\\c8- bionic, telepathic, psychedelic '
 	dc.b 'and completely ozric, the laser-spitting llamatron '
 	dc.b 'is the best hope to defeat the zzyaxian hordes and '
-	dc.b 'keep our beasties safe!\r\r\r'
-	dc.b '\\c1\\qthe mission:',0,'\r\r\\c',11,'-- rescue beasties '
-	dc.b '(\\s',0,35,'\\s',0,72,'\\s',0,85,'\\s',0,88,')\r'
+	dc.b 'keep our beasties safe!\\r\\r\\r'
+	dc.b '\\c1\\qthe mission:',0,'\\r\\r\\c',11,'-- rescue beasties '
+	dc.b '(\\s',0,35,'\\s',0,72,'\\s',0,85,'\\s',0,88,')\\r'
 
-;	dc.b '(\\s',0,12,'\\s',0,13,'\\s',0,14,'\\s',0,15,')\r'
+;	dc.b '(\\s',0,12,'\\s',0,13,'\\s',0,14,'\\s',0,15,')\\r'
 
-	dc.b '-- kill grunts (\\s',0,239,'\\s',0,34,'etc.)\r\r\r'
-	dc.b '\\c1\\qyour enemies:',0,'\r\r'
-	dc.b 'spikers:\\c4 (\\s',0,111,') fragment when shot\r\\c1'
-	dc.b 'fire hydrant generators:\\c4 (\\s',0,60,') do just that\r\\c1'
-	dc.b 'fire hydrant:\\c4 (\\s',0,64,') chase and fire at you\r\\c1'
+	dc.b '-- kill grunts (\\s',0,239,'\\s',0,34,'etc.)\\r\\r\\r'
+	dc.b '\\c1\\qyour enemies:',0,'\\r\\r'
+	dc.b 'spikers:\\c4 (\\s',0,111,') fragment when shot\\r\\c1'
+	dc.b 'fire hydrant generators:\\c4 (\\s',0,60,') do just that\\r\\c1'
+	dc.b 'fire hydrant:\\c4 (\\s',0,64,') chase and fire at you\\r\\c1'
 	dc.b 'bibblers:\\c4 (\\s',0,123,') split into wibblers (\\s',0,127
-	dc.b ') and fooberols (\\s',0,131,')\r\\c1'
+	dc.b ') and fooberols (\\s',0,131,')\\r\\c1'
 	dc.b 'killers:\\c4 (\\s',0,43,' ) chase \\s',0,36,'\\s',0,79
-	dc.b '\\s',0,77,'\\s',0,88,', and \\c2kill \\c4 them on contact!\\s',0,51,'\r\\c1'
+	dc.b '\\s',0,77,'\\s',0,88,', and \\c2kill \\c4 them on contact!\\s',0,51,'\\r\\c1'
 	dc.b 'lazers:\\c4 (\\s',0,135,') generate plazma beam and '
-	dc.b 'cannot be killed!\r'
+	dc.b 'cannot be killed!\\r'
 	dc.b '\\c1brains:\\c4 (\\s',0,168,' ) grab \\s',0,35,'\\s',0,80
 	dc.b '\\s',0,78,'\\s',0,87,', and \\c1mutate\\c4 them into '
-	dc.b 'mindless \\c2zombeasts \\s',0,153,' !\r'
+	dc.b 'mindless \\c2zombeasts \\s',0,153,' !\\r'
 	dc.b '\\c1generator blocks:\\c4 (\\s',0,222,' ) armoured '
-	dc.b 'and generate \\s',0,239,'\\s',0,34,'!\r'
+	dc.b 'and generate \\s',0,239,'\\s',0,34,'!\\r'
 	dc.b '\\c1false teeth:\\c4 (\\s',0,224,') fly around firing '
-	dc.b 'weird \\s',0,229,' at you!\r'
+	dc.b 'weird \\s',0,229,' at you!\\r'
 	dc.b '\\c1pointy thing:\\c4 (\\s',0,231,' ) take three shots '
-	dc.b 'to kill, and tries to point out \\s',0,15,'!!\r'
+	dc.b 'to kill, and tries to point out \\s',0,15,'!!\\r'
 	dc.b '\\c1alien in sheep"s clothing: \\s',0,79,'\\c4 '
 	dc.b 'beware these in your herd \\s',0,80,'\\s',0,82,'\\s',0,85
-	dc.b ' because they splat"em!\r'
-	dc.b '\r\\c4\\qbeware the sheepipede!!',0
-	dc.b '\r\r\\c1\\qwatch out for the screaming mandy',0
-	dc.b '\r\\qcoz i"m sure it"s gonna get you',0
-	dc.b '\r\\qyeah!!',0
-	dc.b '\r\r\r\r\\c1-- many many more \\s',0,13,'- threatening nasties '
-	dc.b 'lurk in the higher levels. . .\r\r\r'
+	dc.b ' because they splat"em!\\r'
+	dc.b '\\r\\c4\\qbeware the sheepipede!!',0
+	dc.b '\\r\\r\\c1\\qwatch out for the screaming mandy',0
+	dc.b '\\r\\qcoz i"m sure it"s gonna get you',0
+	dc.b '\\r\\qyeah!!',0
+	dc.b '\\r\\r\\r\\r\\c1-- many many more \\s',0,13,'- threatening nasties '
+	dc.b 'lurk in the higher levels. . .\\r\\r\\r'
 	dc.b '\\c4'
 	dc.b 'grab \\s',0,35,'\\s',0,80
 	dc.b '\\s',0,78,'\\s',0,87,', and get \\c1 hot bullets \\c4'
 	dc.b '\\s',0,187,' and if you get the \\c1 last beastie \\c4'
-	dc.b 'get a special bonus!\r\r'
+	dc.b 'get a special bonus!\\r\\r'
 	dc.b 'collect \\s',0,196,' to make the \\s',0,35,'\\s',0,80
 	dc.b '\\s',0,78,'\\s',0,87,' love you! they run towards '
-	dc.b 'you while besotted!\r\r\r'
-	dc.b '\\c6collect the following for powerup. .\r\r'
-	dc.b '\\s',0,242,'\\g',40,6,'. . . \\c1extra \\s',0,13,'\r'
+	dc.b 'you while besotted!\\r\\r\\r'
+	dc.b '\\c6collect the following for powerup. .\\r\\r'
+	dc.b '\\s',0,242,'\\g',40,6,'. . . \\c1extra \\s',0,13,'\\r'
 	dc.b '\\s',0,240,'\\g',40,6,'. . . warp\\c6 5 levels and \\c150,000 '
-	dc.b '\\c6bbonus\r'
-	dc.b '\\s',0,244,'\\g',40,6,'. . . \\c1hot bullets\\c6 till end of wave\r'
-	dc.b '\\s',0,246,'\\g',40,6,'. . . 3-way firing and \\c1double score!\r'
+	dc.b '\\c6bbonus\\r'
+	dc.b '\\s',0,244,'\\g',40,6,'. . . \\c1hot bullets\\c6 till end of wave\\r'
+	dc.b '\\s',0,246,'\\g',40,6,'. . . 3-way firing and \\c1double score!\\r'
 	dc.b '\\s',0,248,'\\g',40,6,'. . . \\c1smart bomb\\c6 damages '
-	dc.b 'all enemies onscreen\r'
+	dc.b 'all enemies onscreen\\r'
 	dc.b '\\s',0,250,'\\g',40,6,'. . . gives period of \\c1invincibility\\c6'
-	dc.b '\r'
-	dc.b '\\s',1,0,'\\g',40,6,'. . . gives you \\c1reflective shots\\c6\r'
-	dc.b '\\s',1,2,'\\g',40,6,'. . . pick this up for a \\c1floyd bonus\\c1\r'
+	dc.b '\\r'
+	dc.b '\\s',1,0,'\\g',40,6,'. . . gives you \\c1reflective shots\\c6\\r'
+	dc.b '\\s',1,2,'\\g',40,6,'. . . pick this up for a \\c1floyd bonus\\c1\\r'
 	
-	dc.b '\r\r\\c6why not play team mode with a likeminded entity? '
-	dc.b ' \\s',0,13,' and \\s',0,95,' make a killer team!\r\r\r'
+	dc.b '\\r\\r\\c6why not play team mode with a likeminded entity? '
+	dc.b ' \\s',0,13,' and \\s',0,95,' make a killer team!\\r\\r\\r'
 	dc.b '\\c2all alone?  \\c1aaahh! \\c2never mind - the \\c4 droid '
-	dc.b '\\c2is always waiting and willing to be your partner!\r\r\r'
+	dc.b '\\c2is always waiting and willing to be your partner!\\r\\r\\r'
 	dc.b '\\c3alright then! get out there and grab those \\s',0,36,'\\s',0,79
-	dc.b '\\s',0,77,'\\s',0,88,'!\r\r\\c1\\qgood luck',0
-	dc.b '\r\r\\qdeath to the zzyaxians!!',0,'\r\r'
-	dc.b '\\g',156,10,'\\s',0,88,'\r'
-	dc.b '\e'
+	dc.b '\\s',0,77,'\\s',0,88,'!\\r\\r\\c1\\qgood luck',0
+	dc.b '\\r\\r\\qdeath to the zzyaxians!!',0,'\\r\\r'
+	dc.b '\\g',156,10,'\\s',0,88,'\\r'
+	dc.b '\\e'
 
 
 
@@ -13996,17 +13996,17 @@ msgtab: dc.w 99,0
 	dc.w -1
 
 msg_01: dc.b '\\g',0,60,'\\c1\\qyou"re awesome!!',0
-	dc.b '\r\\qgrab these bonus beasties!',0
-	dc.b '\r\r\\qnow it gets harder. . .',0,'\e'
+	dc.b '\\r\\qgrab these bonus beasties!',0
+	dc.b '\\r\\r\\qnow it gets harder. . .',0,'\\e'
 
-msg_02: dc.b '\\g',0,60,'\\c1\\qthe ozric tentacle',0,'\e'
+msg_02: dc.b '\\g',0,60,'\\c1\\qthe ozric tentacle',0,'\\e'
 
-msg_03: dc.b '\\g',0,60,'\\c1\\qkill grunts',0,'\r\\qgrab beasties',0,'\e'
+msg_03: dc.b '\\g',0,60,'\\c1\\qkill grunts',0,'\\r\\qgrab beasties',0,'\\e'
 
 msg_04: dc.b '\\g',0,60,'\\c1\\qbrains grab beasties',0
-	dc.b '\r\\qto make zombeasts!',0,'\e'
+	dc.b '\\r\\qto make zombeasts!',0,'\\e'
 
-msg_05: dc.b '\\g',0,60,'\\c1\\qin a herd wave',0,'\r\\qyou must grab all beasties',0,'\e'
+msg_05: dc.b '\\g',0,60,'\\c1\\qin a herd wave',0,'\\r\\qyou must grab all beasties',0,'\\e'
 
 
 wave1: dc.b -8,$40,-1,1,1,-2,0,0,0,0,-5,0,$30,0,0,0,1,30,-1,-1
