@@ -1,7 +1,7 @@
 ; opt habs
 ; section code
 ; org $f000
- opt "+oall"
+opt "~oall"
 ; opt o5+
 ; opt o1+
 ; opt "ow-"
@@ -175,7 +175,7 @@ ini_rnd:
  jsr setpal 
  jsr setfwait
 
- bsr do_version
+ jsr do_version
 ;zoko: add #1,$ff8240
 ; bra zoko
  lea skores,a0
@@ -645,7 +645,7 @@ tw: tst sampri
  bra nxlvl
 
 warpmes: dc.b '\\g',0,70,'\\c1\\qwarp five levels',0,'\\r\\r'
-	dc.b '\\qbonus 50,000 points',0,'\\e'  
+	dc.b '\\qbonus 50,000 points',0,'\\e'
 
 herdmes: dc.b '\\g',0,175,'\\c1\\qherd wave',0,'\\e'
 demes: dc.b '\\g',0,185,'\\c1\\qdemo - press fire',0,'\\e'
@@ -1409,14 +1409,14 @@ xlife: add #1,lives
  move #25,d0
  move #2,d1
  move #8,d2
- bsr sonic
+ jsr sonic
  rts
 
 inlove: move #800,luv
  move #28,d0
  move #2,d1
  move #8,d2
- bsr sonic
+ jsr sonic
  rts
 
 
@@ -1424,7 +1424,7 @@ setveleq: movem.l d1/a0,-(A7)
  move #13,d0
  move #0,d1
  move #3,d2
- bsr sonic
+ jsr sonic
  movem.l (a7)+,d1/a0
  sub #1,24(a2)
  bmi stdkill
@@ -1468,7 +1468,7 @@ baumb: movem.l d0-d2/a0-a2,-(A7)
  move #13,d0
  move #1,d1
  move #3,d2
- bsr sonic
+ jsr sonic
  movem.l (a7)+,d0-d2/a0-a2 
  rts
 
