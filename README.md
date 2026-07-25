@@ -1,8 +1,22 @@
 # Llamatron:2112 by Jeff Minter
+This is the 'rude' version of Llamatron by Jeff Minter for the Atari STE/TT.
+It's a variant of the original
+[Llamatron](https://en.wikipedia.org/wiki/Llamatron) with some quite explicit
+swearing added by Minter and his friends. 'Rude Llamatron' was circulated
+privately and on message boards in the early 1990s.
+
+A comment in the [source code](src/LLATRON.S) provides more detail:
+
+```
+* (This version of the source was for a crazy TT remix I did
+* one weekend when the posse came to visit and we were all
+* out of it; it featured a 40-second bank of digitised
+* swearing and would come up with a suitably fruity phrase
+* when you got killed sometimes. Far too rude for me to
+* release, but you could always make your own).
+```
+
 <img src="https://raw.githubusercontent.com/mwenge/llamatron/refs/heads/master/utils/llamatron.gif" height=400>
-
-This is the 'rude' version of Llamatron by Jeff Minter.
-
 
 ## To Just Play It
 
@@ -81,4 +95,4 @@ It's possible to [extract the sound samples](utils/Extract%20Sound%20Samples.ipy
 
 ## Thanks
 
-@gingerbeardman for pointing me to [the sources](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents) and a copy of the [rude binaries](orig/).
+[@gingerbeardman](https://github.com/gingerbeardman) for pointing me to [the sources](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents) and a copy of the [rude binaries](orig/).
