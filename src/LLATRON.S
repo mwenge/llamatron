@@ -1,10 +1,28 @@
                 ; opt habs
                 ; section code
                 ; org $f000
-                opt "~oall"
-                ; opt o5+
-                ; opt o1+
+                ; opt "~oall"
+                ; rmac assembler options
+                opt "+o0"    ; o0: Absolute long addresses to word 
+                opt "+o1"    ; o1: move.l #x,dn/an to moveq
+                opt "+o2"    ; o2: Word branches to short
+                opt "+o3"    ; o3: Outer displacement 0(an) to (an)
+                opt "+o4"    ; o4: lea size(An),An to addq #size,An
+                opt "+o5"    ; o5: 68020+ Absolute long base/outer disp. to word
+                opt "+o6"    ; o6: Null branches to NOP
+                opt "+o7"    ; o7: clr.l Dx to moveq #0,Dx
+                opt "+o8"    ; o8: adda.w/l #x,Ay to addq.w/l #x,Ay
+                ; opt "+o9"  ; o9: adda.w/l #x,Ay to lea x(Dy),Ay
+                opt "+o10"   ; o10: 56001 Use short format for immediate values if possible
+                ;opt "+o11"   ; o11: 56001 Auto convert short addressing mode to long (default: on)
+                ; opt "+op"    ; o30: Enforce PC relative (alternative name: op)
+
+                ; Original Assembler options (for DevPac Developer).
+                ; opt o+
+                ; opt o5+  (Commented Out)
+                ; opt o1+  (Commented Out)
                 ; opt "ow-"
+
 
 *********
 *
