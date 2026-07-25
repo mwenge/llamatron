@@ -1,7 +1,7 @@
                 ; opt habs
                 ; section code
                 ; org $f000
-opt "~oall"
+                opt "~oall"
                 ; opt o5+
                 ; opt o1+
                 ; opt "ow-"
