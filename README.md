@@ -56,5 +56,16 @@ $ make
 
 ## Notes on the Sources
 
+File | Source | Description |
+ --- | --- |
+[LLATRON.S](src/LLATRON.s) | [LLATRON.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/LLATRON.s) | Main Game 6502 assembler source code |
+[SASONIX.S](src/LLATRON.s) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.s) | Customized sound driver |
+[SINE.IMG](src/SINE.IMG) | [SINE.IMG](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SINE.IMG) | SINE Table |
+[TENTACLE.S](src/TENTACLE.S) | [TENTACLE.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/TENTACLE.S) | Pause Mode |
+[fonte.s](src/fonte.s) | [rude_llamatron.prg](orig/rude_llamatron.prg) | Font Sprites |
+[sonix2.spl](src/sonix2.spl) | [rude_llamatron.prg](orig/rude_llamatron.prg) | Sound Samples |
+[yakky2.neo](src/yakky2.neo) | [rude_llamatron.prg](orig/rude_llamatron.prg) | Splash Screen Graphic |
+
 ## Thanks
+
 @gingerbeardman for pointing me to [the sources](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents) and a copy of the [rude binaries](orig/).
