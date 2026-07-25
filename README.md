@@ -16,7 +16,7 @@ A comment in the [source code](src/LLATRON.S) provides more detail:
 * release, but you could always make your own).
 ```
 
-<img src="https://raw.githubusercontent.com/mwenge/llamatron/refs/heads/master/utils/llamatron.gif" height=400>
+<img src="https://raw.githubusercontent.com/mwenge/llamatron/refs/heads/master/utils/llamatron.gif" height=600>
 
 ## To Just Play It
 
