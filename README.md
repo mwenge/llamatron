@@ -1,4 +1,5 @@
 # Llamatron:2112 by Jeff Minter
+<img src="https://raw.githubusercontent.com/mwenge/llamatron/refs/heads/master/utils/llamatron.gif" height=400>
 
 This is the 'rude' version of Llamatron by Jeff Minter.
 
