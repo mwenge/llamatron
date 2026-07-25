@@ -69,7 +69,7 @@ File | Source | Description |
 [SASONIX.S](src/SASONIX.s) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.s) | Customized sound driver |
 [SINE.IMG](src/SINE.IMG) | [SINE.IMG](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SINE.IMG) | SINE Table |
 [TENTACLE.S](src/TENTACLE.S) | [TENTACLE.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/TENTACLE.S) | Pause Mode |
-[fonte.s](src/fonte.s) | [Reworked]("src/utils/Recreate fonte.s.ipynb") from [rude_llamatron.prg](orig/rude_llamatron.prg) | Font Sprites |
+[fonte.s](src/fonte.s) | [Reworked](src/utils/Recreate%sfonte.s.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Font Sprites |
 [sonix2.spl](src/sonix2.spl) |[Extracted](utils/Extract Assets.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Sound Samples |
 [yakky2.neo](src/yakky2.neo) |[Extracted](utils/Extract Assets.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Splash Screen Graphic |
 
