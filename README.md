@@ -56,15 +56,26 @@ $ make
 
 ## Notes on the Sources
 
+Jeff Minter [released the
+sources](https://toot.wales/@llamasoft_ox/112091038601382684), but not the
+assets, for Llamatron so I've had to extract them from [a binary of 'rude'
+Llamatron](orig/FILTH.PRG) that is still in circulation but not widely available.
+The first step [was to decompress this binary](utils/Unpack FILTH.prg.ipynb) so that we can get
+at [the raw data](orig/rude_llamatron.prg). 
+
 File | Source | Description |
  --- | --- | --- |
 [LLATRON.S](src/LLATRON.s) | [LLATRON.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/LLATRON.s) | Main Game 6502 assembler source code |
-[SASONIX.S](src/LLATRON.s) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.s) | Customized sound driver |
+[SASONIX.S](src/SASONIX.s) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.s) | Customized sound driver |
 [SINE.IMG](src/SINE.IMG) | [SINE.IMG](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SINE.IMG) | SINE Table |
 [TENTACLE.S](src/TENTACLE.S) | [TENTACLE.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/TENTACLE.S) | Pause Mode |
-[fonte.s](src/fonte.s) | [rude_llamatron.prg](orig/rude_llamatron.prg) | Font Sprites |
-[sonix2.spl](src/sonix2.spl) | [rude_llamatron.prg](orig/rude_llamatron.prg) | Sound Samples |
-[yakky2.neo](src/yakky2.neo) | [rude_llamatron.prg](orig/rude_llamatron.prg) | Splash Screen Graphic |
+[fonte.s](src/fonte.s) | [Reworked](src/utils/Recreate fonte.s.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Font Sprites |
+[sonix2.spl](src/sonix2.spl) |[Extracted](utils/Extract Assets.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Sound Samples |
+[yakky2.neo](src/yakky2.neo) |[Extracted](utils/Extract Assets.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Splash Screen Graphic |
+
+It was necessary to tweak the sources in order to assemble with `rmac`, these changes are visible in the [commit history](https://github.com/mwenge/llamatron/commits/master/).
+
+It's possible to [extract the sound samples](utils/Extract Sound Samples.ipynb) and play them as [wav files](utils/samples).
 
 ## Thanks
 
