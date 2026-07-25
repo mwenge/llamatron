@@ -77,7 +77,7 @@ File | Source | Description |
 
 It was necessary to tweak the sources in order to assemble with `rmac`, these changes are visible in the [commit history](https://github.com/mwenge/llamatron/commits/master/).
 
-It's possible to [extract the sound samples](utils/Extract Sound Samples.ipynb) and play them as [wav files](utils/samples).
+It's possible to [extract the sound samples](utils/Extract%20Sound%20Samples.ipynb) and play them as [wav files](utils/samples).
 
 ## Thanks
 
