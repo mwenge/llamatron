@@ -80,8 +80,8 @@ at [the raw data](orig/rude_llamatron.prg).
 
 File | Source | Description |
  --- | --- | --- |
-[LLATRON.S](src/LLATRON.S) | [LLATRON.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/LLATRON.s) | Main Game 6502 assembler source code |
-[SASONIX.S](src/SASONIX.S) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.s) | Customized sound driver |
+[LLATRON.S](src/LLATRON.S) | [LLATRON.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/LLATRON.S) | Main Game 6502 assembler source code |
+[SASONIX.S](src/SASONIX.S) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.S) | Customized sound driver |
 [SINE.IMG](src/SINE.IMG) | [SINE.IMG](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SINE.IMG) | SINE Table |
 [TENTACLE.S](src/TENTACLE.S) | [TENTACLE.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/TENTACLE.S) | Pause Mode |
 [fonte.s](src/fonte.s) | [Reworked](utils/Recreate%20fonte.s.ipynb) from [rude_llamatron.prg](orig/rude_llamatron.prg) | Font Sprites |
