@@ -75,10 +75,10 @@ Jeff Minter [released the
 sources](https://toot.wales/@llamasoft_ox/112091038601382684), but not the
 assets, for Llamatron so I've had to extract them from [a binary of 'rude'
 Llamatron](orig/FILTH.PRG) that is still in circulation but not widely available.
-The first step [was to decompress this binary](utils/Unpack FILTH.prg.ipynb) so that we can get
+The first step [was to decompress this binary](utils/Unpack%20FILTH.prg.ipynb) so that we can get
 at [the raw data](orig/rude_llamatron.prg). 
 
-File | Source | Description |
+File | Origin | Description |
  --- | --- | --- |
 [LLATRON.S](src/LLATRON.S) | [LLATRON.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/LLATRON.S) | Main Game 6502 assembler source code |
 [SASONIX.S](src/SASONIX.S) | [SASONIX.S](https://github.com/ggnkua/Atari_ST_Sources/tree/master/ASM/Llamasoft/Llamatron%20source%20disk%20contents/SASONIX.S) | Customized sound driver |
