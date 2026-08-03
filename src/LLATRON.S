@@ -2477,6 +2477,7 @@ joy_int:        move.b 1(a0),joydat ;%10001111
 
 joydat:         dc.w 0
 
+                ; Set up the pallette for the game. This is sourced from game_pal.
 setpal:         lea $ff8240,a1
                 move #15,d1
 set_loop:       move (a0)+,(a1)+
@@ -9356,6 +9357,7 @@ shipb:          dc.l shipdat+8192
 seed:           dc.w $3141
 key_vec equ $118
 
+                ; The palette of colors for the game.
 game_pal:       dc.w $0000,$0717,$0700,$0750,$0770,$0D34,$00C0,$007C
                 dc.w $0077,$00C7,$0223,$0007,$0507,$0775,$0777,$0555
 
