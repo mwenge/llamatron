@@ -8,11 +8,11 @@ dc.w  $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
 dc.w  $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
 dc.w  $0000, $0000, $0000, $0000, $0000, $0000
 
-dc.l char_blank, char_exclamation, char_quote, char_hash, char_dollar, char_percent, char_ampersand, char_apostrophe
-dc.l char_open_paren, char_close_paren, char_asterisk, char_plus, char_comma, char_minus, char_period, char_slash
-dc.l char0, char1, char2, char3, char4, char5, char6, char7
-dc.l char8, char9, char_colon, char_semicolon, char_less_than, char_equals, char_greater_than, char_question
-dc.l char_at, char_A, char_B, char_C, char_D, char_E, char_F, char_G
+dc.l char_blank, char_exclamation, char_quote, char_hash, char_del, char_percent, char_ampersand, char_apostrophe
+dc.l char_open_paren, char_close_paren, char_ok, char_plus, char_comma, char_minus, char_period, char_slash
+dc.l char_0, char_1, char_2, char_3, char_4, char_5, char_6, char_7
+dc.l char_8, char_9, char_colon, char_semicolon, char_less_than, char_equals, char_greater_than, char_question
+dc.l char_copyright, char_A, char_B, char_C, char_D, char_E, char_F, char_G
 dc.l char_H, char_I, char_J, char_K, char_L, char_M, char_N, char_O
 dc.l char_P, char_Q, char_R, char_S, char_T, char_U, char_V, char_W
 dc.l char_X, char_Y, char_Z, char_open_bracket, char_backslash, char_close_bracket, char_close_bracket, char_close_bracket
@@ -84,7 +84,7 @@ char_hash:
              dc.w $0000, $0000, $3600, $bb00, $4480, $4480, $ff80, $0000
              dc.w $3600, $3600, $3600, $0400, $3600, $3600, $3600
 
-char_dollar:
+char_del:
              ; ................................
              ; ................................
              ; ................................
@@ -203,7 +203,7 @@ char_close_paren:
              dc.w $7800, $7800, $7800, $2000, $7800, $7800, $7800, $7800
              dc.w $7800, $7800, $7800, $f000, $f000, $f000, $f000
 
-char_asterisk:
+char_ok:
              ; ................................
              ; ................................
              ; ................................
@@ -326,7 +326,7 @@ char_slash:
              dc.w $3000, $3000, $3000, $6000, $0000, $6000, $6000, $c000
              dc.w $0000, $c000, $c000, $0000, $0000, $c000, $c000
 
-char0:
+char_0:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 2222......222222................
@@ -352,7 +352,7 @@ char0:
              dc.w $cf00, $cf00, $cf00, $4200, $cf00, $cf00, $cf00, $ff00
              dc.w $ff00, $ff00, $ff00
 
-char1:
+char_1:
              ; ..222222........................
              ; ..111111........................
              ; ..222222........................
@@ -378,7 +378,7 @@ char1:
              dc.w $f000, $f000, $f000, $0000, $f000, $f000, $f000, $f000
              dc.w $f000, $f000, $f000
 
-char2:
+char_2:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 2222......222222................
@@ -404,7 +404,7 @@ char2:
              dc.w $f000, $f000, $f000, $5200, $f300, $f300, $f300, $ff00
              dc.w $ff00, $ff00, $ff00
 
-char3:
+char_3:
              ; 22222222222222..................
              ; 11111111111111..................
              ; 2222....222222..................
@@ -430,7 +430,7 @@ char3:
              dc.w $cf00, $cf00, $cf00, $0a00, $cf00, $cf00, $cf00, $ff00
              dc.w $ff00, $ff00, $ff00
 
-char4:
+char_4:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 2222......222222................
@@ -456,7 +456,7 @@ char4:
              dc.w $0f00, $0f00, $0f00, $0000, $0f00, $0f00, $0f00, $0f00
              dc.w $0f00, $0f00, $0f00
 
-char5:
+char_5:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 222222..........................
@@ -482,7 +482,7 @@ char5:
              dc.w $cf00, $cf00, $cf00, $4200, $cf00, $cf00, $cf00, $ff00
              dc.w $ff00, $ff00, $ff00
 
-char6:
+char_6:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 2222......222222................
@@ -508,7 +508,7 @@ char6:
              dc.w $cf00, $cf00, $cf00, $0a00, $cf00, $cf00, $cf00, $ff00
              dc.w $ff00, $ff00, $ff00
 
-char7:
+char_7:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 2222......222222................
@@ -534,7 +534,7 @@ char7:
              dc.w $0f00, $0f00, $0f00, $0000, $0f00, $0f00, $0f00, $0f00
              dc.w $0f00, $0f00, $0f00
 
-char8:
+char_8:
              ; ..222222222222..................
              ; ..111111111111..................
              ; ..2222..222222..................
@@ -560,7 +560,7 @@ char8:
              dc.w $cf00, $cf00, $cf00, $8900, $cf00, $cf00, $cf00, $ff00
              dc.w $ff00, $ff00, $ff00
 
-char9:
+char_9:
              ; 2222222222222222................
              ; 1111111111111111................
              ; 2222......222222................
@@ -691,7 +691,7 @@ char_question:
              dc.w $0000, $0000, $0000, $5000, $7800, $7800, $7800, $7800
              dc.w $7800, $7800, $7800
 
-char_at:
+char_copyright:
              ; 2222............2222............
              ; 2222............2222............
              ; 1111..11111111..1111............
