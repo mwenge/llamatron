@@ -7968,7 +7968,7 @@ print:
                 ; Print a string, with imbedded control commands.
                 ; Enter with the address of yer string in a0.
                 ; Commands are preceded by a \ character. The following
-; are recognized: 
+                ; are recognized: 
                 ;
                 ; \\r  CR/LF
                 ; \\e  End printing
