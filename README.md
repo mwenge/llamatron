@@ -69,6 +69,11 @@ To just compile the game and get a binary (`llamatron.prg`) do:
 $ make 
 ```
 
+## Exploring the Sources
+
+Try this [interactive Jupyter notebook](https://mwenge.github.io/llamatron) to explore the source code, especially
+the graphics and sound.
+
 ## Notes on the Sources
 
 Jeff Minter [released the
