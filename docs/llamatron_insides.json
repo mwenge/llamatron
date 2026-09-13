@@ -12,6 +12,11 @@ const llamatron_notebook =
         },
         {
             "type": "markdown",
+            "source": "This is an interactive Python notebook. As you read through you should run the 'white' cells by hovering over them and pressing the 'Play' button in the bar that pops up. Alternatively, you can click 'Run All' on the top right to generate all the output right now. Then you can scroll back up here and read along.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
             "source": "## Let's Start with Sprites",
             "collapsed": false
         },
