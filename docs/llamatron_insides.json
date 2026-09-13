@@ -1,0 +1,625 @@
+const default_notebook = {"notebooks":[{"id":"llamatron_notebook","name":"Llamatron: The Insides","updated":1789329739588}],"current":"llamatron_notebook"}
+
+const llamatron_notebook = 
+{
+    "v": 2,
+    "name": "Llamatron: The Insides",
+    "cells": [
+        {
+            "type": "markdown",
+            "source": "# Llamatron: The Insides",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## Let's Start with Sprites",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "To understand sprites, the cornerstone of graphics in Llamatron, we're going to look at how we set up a palette of colors for the game and then understand how we setup the data for our sprites to define colourful pictures to display to the player.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "One of the first things Llamatron does is set up its palette. The Atari STE allows you to define a palette of 16 colors. So what we can do is choose which of the 4096 colors we want to use. This is the relevant code. Our color palette is defined in the array `game_pal` and the routine `setpal` sets it up as the color palette to use.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```asm\n                ; Our palette of 16 colors\ngame_pal:       dc.w $0000,$0717,$0700,$0750,$0770,$0D34,$00C0,$007C\n                dc.w $0077,$00C7,$0223,$0007,$0507,$0775,$0777,$0555\n                ..\n                move.l #game_pal,a0      ; Store a pointer to the palette in a0.\n                jsr setpal               ; Call setpal to copy game_pal to the palette.\n                ..\n                ; The palette is stored in registers $ff8240 to $ff824e. One register per colour.\n                ; a0 is a pointer to the palette we are copying from (game_pal in this instance).\nsetpal:         lea $ff8240,a1           ; Store pointer to first color register in a1.\n                move #15,d1              ; Use d1 as our index, we start at the last register so we start at 15.\nset_loop:       move (a0)+,(a1)+         ; Copy the entry in a0 (game_pal) to the current register.\n                dbra d1,set_loop         ; Decrement index to go the next regiser, and loop until finished.\n                rts\n```",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Notice the rather odd way of defining color values in `game_pal`. Knowing that they are RGB values we can guess that the last three nibbles in each word represent Red, Green, and Blue values respectively. So for example `$0717` might mean a red value of 7, a green value of 1, and a blue value of 7. This is almost correct, but the truth is slightly more complicated. In fact the bits for each color are given slightly out of order, with the lowest order bit in the most significant position. So to get the actual value for each of red, green , and blue we need to correct them in the manner below.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```\n                     | .... |rRRR |gGGG | bBBB\nHex Value            | 0    | 7   | 1   | 7 \nBits                 | 0000 |0111 |0001 | 0111\nCorrected Bits       | 0000 |1110 |0010 | 1110\nCorrected Hex Value  | 0    | E   | 2   | E\n```",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's see what each of the RGB values in `game_pal` actually translates to.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "# Get the rgb words in game_pal\ngame_pal = \"\"\"\ngame_pal:\n        dc.w $0000,$0717,$0700,$0750,$0770,$0D34,$00C0,$007C\n        dc.w $0077,$00C7,$0223,$0007,$0507,$0775,$0777,$0555\n\"\"\".split('\\n')[2:-1]\n# Convert them to a list, e.g. ['0000','0717', '0700', etc.]\ncolor_words = [w[2:] for l in game_pal for w in l.strip()[5:].split(',')]\n\ndef get_rgb(nibble):\n    \"\"\"\n    Convert a 4-bit Atari STE RGB value of the form ''....rRRR gGGGbBBB'\n    to an 8-bit RGB value we can use to display graphics here.\n    \"\"\"\n    lsb = (nibble & 0x08) >> 3\n    msbs = (nibble & 0x07) << 1\n    return (msbs | lsb) * 16 # Multiply by 16 to map it to 0..255\n\n# Convert them to rgb values between 0 and 255\nrgb_palette = [tuple([get_rgb(int(n,16)) for n in w]) for i, w in enumerate(color_words)]\n\n# Display them.\nrgb_palette",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "With our 4-bit (0-16) RGB values mapped to their 8-bit (0-255) equivalents, we can take a look at what colors our palette contains.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "from PIL import Image, ImageDraw\n\nimg = Image.new( 'RGB', (len(rgb_palette) * 40, 180), color=\"white\")\ndraw = ImageDraw.Draw(img)\n\n# Display the colors in rgb_palette.\nx,y = 5,5\nfor color in rgb_palette:\n    draw.rectangle([(x,y), (x + 60, y + 60)], fill = color, outline=\"black\")\n    draw.text((x, y + 70), str(color), fontsize=14, fill=\"black\")\n    x += 80\n    if x > 640: \n        y += 90\n        x = 5\nImage.images = [img]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## A Little Llama",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Now that we have our colours, let's see how we can use them to display something. Here is the sprite definition for the player's avatar in llamatron, a dinky little llama.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```\nlla1:           dc.w 3,0,17,14,0,0\n                dc.w $0008,$0000,$0008,$0000,$0010,$0000,$0010,$0000\n                dc.w $0018,$0008,$0010,$0000,$003C,$001C,$0020,$0000\n                dc.w $0030,$0010,$0020,$0000,$0030,$0000,$0030,$0000\n                dc.w $C030,$C000,$0030,$0000,$2038,$2020,$0018,$0000\n                dc.w $3FF8,$00E0,$3F18,$0F00,$1FF8,$0000,$1FF8,$1E00\n                dc.w $1FF8,$0000,$1FF8,$0C00,$1FF0,$0C00,$13F0,$0000\n                dc.w $3828,$1800,$2028,$0000,$3428,$0000,$3428,$0000\n                dc.w $282C,$0000,$282C,$0000,$2824,$0000,$2824,$0000\n                dc.w $3026,$0000,$3026,$0000,$0C30,$0000,$0C30,$0000\n\n```",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's slurp ths into a python list of integers. We'll ignore the first line for now, as that contains positioning information rather than graphical data.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "lla1 = \"\"\"\nlla1:           dc.w 3,0,17,14,0,0\n                dc.w $0008,$0000,$0008,$0000,$0010,$0000,$0010,$0000\n                dc.w $0018,$0008,$0010,$0000,$003C,$001C,$0020,$0000\n                dc.w $0030,$0010,$0020,$0000,$0030,$0000,$0030,$0000\n                dc.w $C030,$C000,$0030,$0000,$2038,$2020,$0018,$0000\n                dc.w $3FF8,$00E0,$3F18,$0F00,$1FF8,$0000,$1FF8,$1E00\n                dc.w $1FF8,$0000,$1FF8,$0C00,$1FF0,$0C00,$13F0,$0000\n                dc.w $3828,$1800,$2028,$0000,$3428,$0000,$3428,$0000\n                dc.w $282C,$0000,$282C,$0000,$2824,$0000,$2824,$0000\n                dc.w $3026,$0000,$3026,$0000,$0C30,$0000,$0C30,$0000\n\"\"\".split('\\n')[2:-1]\nlla1_list = [int(b[1:],16) for l in lla1 for b in l[21:].split(',')]\n\n# Display the first 4 elements in the sprite data.\nlla1_list[:4]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "To get our sprite from this data we take 4 elements at a time from the list (or pur another way, four 16-bit words at a time) and use each to create a row of 16 pixels. We can then build up these sequences of 16-pixels to create a sprite of the desired width and height.\n\nIn this instance our `lla1` sprite is 16 pixels wide so each group of 4 words will give us a 'line' of the sprite. Let's take a look at how we get the first line of pixels in `lla1`. We'll take the first 4 words and convert them to a binary represtation for ease of understanding. So `8` becomes `0000000000001000` for example:",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "# Convert the first four words in the definition to a binary representation. We do this in reversed order, so start \n# from the last of the 4 words and work backwards.\nbits = tuple([format(b,f\"016b\") for b in reversed(lla1_list[:4])])\n# Display alongside their integer counterpart.\nlist(zip(bits, reversed(lla1_list[:4])))",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "If we think of these bits as a table, what we do next is 'rotate' it. We turn a list of 4 16-bit elements into a list of 16 4-bit  elements (or `nibbles`) by rotating the table to the left. What this means in practice is that we build up this list by taking the 1st bit from each of the 4 elements and concatenating them together. Then do the same for the 2nd bit, and so on. This gives us a list of 16 elements with 4 bits each. Another way of thinking of this is as a list of 16 numbers, each with a value between 0 and 16. The same as the number of the colours in our palette.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "nibbles = [''.join(x) for x in zip(*bits)]\nnibbles",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "You might be getting the idea of where this is going, we can now use each element in this list as index into our colour palette. What we have is our list of colour pixels for the first line in the sprite. Let's render this first line.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "# Create a look-up table for our RGB values.\nrgb_palette = {format(i,f\"004b\") : tuple([get_rgb(int(n,16)) for n in w])\n               for i, w in enumerate(color_words)}\n\nimg = Image.new( 'RGBA', (16, 1))\npixels = img.load()\nfor x, bit in enumerate(nibbles):\n    if bit == \"0000\": continue   # Ignore background pixels\n    pixel_color = rgb_palette[bit]\n    pixels[x,0] = pixel_color\nimg = img.resize((img.width * 10, img.height * 10), Image.NEAREST)\nImage.images = [img]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "It's not much. Let's try adding the next three lines. We'll generalize the snippets we used above to make a function that will draw as many lines of the sprite as we like.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "WIDTH = 16\ndef draw_llama_sprite(sprite_data, num_lines):\n    NUM_WORDS = 4\n    words_to_read = num_lines * NUM_WORDS\n\n    nibbles = []\n    # Work through the sprite data 4 words at a time, transforming each quartet of 16-bit words\n    # into a 16 element list of 4-bit integers.\n    for i in range(0, len(sprite_data[:words_to_read]), NUM_WORDS):\n        bits = tuple([format(b,f\"016b\") for b in reversed(sprite_data[i:i + NUM_WORDS])])\n        nibbles += [[''.join(x) for x in zip(*bits)]]\n\n    # Use our list to draw the lienes of the sprite.\n    img = Image.new( 'RGBA', (WIDTH, num_lines))\n    pixels = img.load()\n    for y, line in enumerate(nibbles):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue   # Ignore background pixels\n            pixel_color = rgb_palette[bit]\n            pixels[x,y] = pixel_color\n    img = img.resize((img.width * 10, img.height * 10), Image.NEAREST)\n    Image.images += [img]\n\ndraw_llama_sprite(lla1_list, 4)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Looks promising. Let's try a few more lines:",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_llama_sprite(lla1_list, 8)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Now let's do the whole thing:",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_llama_sprite(lla1_list, 21)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Hurray we have the llama sprite in full - and it even looks correct. Armed with this minor triumph we can go ahead and apply this method to all the other sprites in the Llamatron source code.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## Slurping all the Sprites",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "All of Llamatron's graphical assets live as arrays like our `lla1` example in the `LLATRON.S` source file. Below we extract them all into a dictionary called `sprite_definitions` so that we can reference them by name.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "from itertools import pairwise \n\n\"\"\"\nRead in all the sprite definitions in Llamatron's main source file `LLATRON.S` and turn them into a dictionary of\nsprite names with the corresponding sprite definition data and the sprite type.\n\"\"\"\nsrc_file = open(\"LLATRON.S\",'r')\nsrc_lines = src_file.readlines()\n\n# Get the lines with the sprites in them\nsprite_lines = src_lines[9429:10930] + src_lines[11007:13943]\n\n# Get a list of the sprite labels, their position in the file, and the sprite type.\nchar_labels = [(x.split(':')[0], i, int(x.split(',')[1])) \n               for i,x in enumerate(sprite_lines) if \":\" in x]\n\nraw_sprite_definitions = {}\ndef get_sprite_data(start, end):\n    \"\"\"\n    Turn raw lines of sprite data into a list of 16-bit integers that we\n    can use to create the sprite bitmaps.\n    \"\"\"\n    raw_sprite_data = [l for l in sprite_lines[start+1:end] if l.strip()]\n    sprite_data = [y.strip()[1:] for x in raw_sprite_data for y in x.strip()[4:].split(',')]\n    sprite_def_data = [int(y,16) for y in sprite_data]\n    return raw_sprite_data, sprite_def_data\n\n# Create a dictionary of sprite definitions keyed on sprite name.\nsprite_definitions = {n: (get_sprite_data(s,e), t) \n                      for (n,s,t),(_,e,_) in pairwise(char_labels + [(\"\",13943,13943)])}\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "With this in hand we can create a simple function called `draw_sprite` to render the contents of each sprite. It uses the same steps we discussed above but with a little more flexibility to account for sprites that are more than 16 pixels wide.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "from PIL import Image, ImageColor, ImageFont, ImageDraw\n\n# Create a look-up table for our RGB values.\nrgb_palette = {format(i,f\"004b\") : tuple([get_rgb(int(n,16)) for n in w])\n               for i, w in enumerate(color_words)}\n\n# A hack for the width of the sprite until I figure out the right way.\nwidth_map = {0:16, 1:32, 3:64, 4:80, 5:96, 6:112, 19:160}\ndef draw_sprite(sprite_name, scale=10, forced_width=None):\n    \"\"\"\n    Given the name of a sprite, draw it.\n    \"\"\"\n    (_, sprite_data), sprite_type = sprite_definitions[sprite_name]\n    width = width_map[sprite_type] if not forced_width else forced_width\n    slice_len = 4\n\n    nibbles = []\n    for i in range(0, len(sprite_data), slice_len):\n        word_bits = tuple([format(b,f\"016b\") for b in reversed(sprite_data[i:i + slice_len])])\n        nibbles += [''.join(x) for x in zip(*word_bits)]\n        \n    sprite_lines = [nibbles[i:i+width] for i in range(0, len(nibbles), width)]\n    \n    height = len(sprite_lines)\n    img = Image.new( 'RGBA', (width, height))\n    pixels = img.load()\n    for y, line in enumerate(sprite_lines):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue\n            pixel_color = rgb_palette[bit]\n            pixels[x,y] = pixel_color\n            \n    img = img.resize((img.width * scale, img.height * scale), Image.NEAREST)\n    Image.images += [img]\n    return img",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Now we can draw a sprite by name, let's take a quick look at the names of all the sprites available to us.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "sprite_definitions.keys()",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "That's a lot to choose from, but here are some choice ones. I quite like the Mandelbrot. You can almost make out the shape of the sprite by just looking at its raw definition data.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "def print_sprite_data(sprite_name):\n    (raw_sprite_data, _), _ = sprite_definitions[sprite_name]\n    print(f\"{sprite_name}:\")\n    print(''.join(raw_sprite_data))\n\nprint_sprite_data('mandy1')",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite(\"mandy1\",15)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "How about some 'branes'? We can't divine much from the raw definitions.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "sprite_list = [f\"brane{i}\" for i in range(1,9)]\nfor sprite in sprite_list:\n    print_sprite_data(sprite)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "But things are much clearer when we render them.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x,y = 10,10\nPADDING = 18\nSCALE = 10\nsprite_list = [f\"brane{i}\" for i in range(1,9)]\nimg = Image.new( 'RGB', (len(sprite_list) * SCALE * PADDING, (PADDING * SCALE) + 40), color=\"black\") \ndraw = ImageDraw.Draw(img)\nfor sprite in sprite_list:\n    sprite_image = draw_sprite(sprite, SCALE)\n    img.paste(sprite_image, (x,y), mask=sprite_image)\n    draw.text((x + 40, (PADDING * SCALE)), sprite, font_size=24, fill=\"white\")\n    x += sprite_image.width + 20\nImage.images = [img]\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "I wonder what these are supposed to be.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x,y = 10,10\nPADDING = 18\nSCALE = 10\nsprite_list = [f\"turd{i}\" for i in range(1,5)]\nimg = Image.new( 'RGB', (len(sprite_list) * SCALE * PADDING, (PADDING * SCALE) + 40), color=\"black\") \ndraw = ImageDraw.Draw(img)\nfor sprite in sprite_list:\n    sprite_image = draw_sprite(sprite, SCALE)\n    img.paste(sprite_image, (x,y), mask=sprite_image)\n    draw.text((x + 40, (PADDING * SCALE)), sprite, font_size=24, fill=\"white\")\n    x += sprite_image.width + 20\nImage.images = [img]\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "All of the sprites are brought together in a monster omnibus list called `objex`. ",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "objex = \"\"\"\nobjex:  dc.l ls1,ls2,ls3,ls4,ls5,ls6,ls7,ls8                ;7\n        dc.l lg1,lg2,lg3,lg4,lg5,lla4,lla3,lla2                ;15\n        dc.l lla1,lla5,lla6,lla7,lla8,lla9,lla10,lla11        ;23\n        dc.l lla12,lla13,lla14,lla15,lla16,bul1,bul2,bul3        ;31\n        dc.l bul4,lec1,coke1,tlla1,tlla2,tlla3,tlla4,tlla5        ;39\n        dc.l tlla6,tlla7,tlla8,kil1,kil2,kil3,kil4,kil5                ;47\n        dc.l kil6,kil7,kil8,skull,kil9,kil10,kil11,kil12,kil13        ;56\n        dc.l kil14,kil15,kil16,fhg1,fhg2,fhg3,fhg4        ;63\n        dc.l fhy,fhyp1,fhyp2,fhyp3,fhyp4,fhb,thoub        ;70\n        dc.l goat1,goat2,goat3,goat4,goat5,goat6,goat7,goat8        ;78\n        dc.l ram1,ram2,ram3,ram4,ram5,ram6,ram7,ram8        ;86\n        dc.l caml1,caml2,caml3,caml4,caml5,caml6,caml7,caml8        ;94\n        dc.l p2cam1,p2cam2,p2cam3,p2cam4,p2cam5,p2cam6,p2cam7,p2cam8        ;102\n        dc.l p2cam9,p2cam10,p2cam11,p2cam12,p2cam13,p2cam14,p2cam15,p2cam16        ;110\n        dc.l bug1,bug2,bug3,bug4,bug5,bug6,bug7,bug8        ;118\n        dc.l spik1,spik2,spik3,spik4                ;122\n        dc.l glob1,glob2,glob3,glob4,glob5,glob6,glob7,glob8        ;130\n        dc.l glob9,glob10,glob11,glob12,lazr,ylazr        ;136\n        dc.l yy1,yy2,yy3,yy4,yy5,yy6,yy7,yy8,yyp1,yyp2,yyp3,yyp4        ;148\n        dc.l blokr1,blokr2,blokr3,blokr4        ;152\n        dc.l mutnt1,mutnt2,mutnt3,mutnt4,mutnt5,mutnt6,mutnt7,mutnt8        ;160\n        dc.l splat1,splat2,brane1,brane2,brane3,brane4,brane5        ;167\n        dc.l brane6,brane7,brane8,spark1,spark2,spark3,spark4        ;174\n        dc.l dot1,dot2,dot3,dot4,bog1,bog2,roll1,roll2,turd1,turd2        ;184\n        dc.l turd3,turd4,bul21,bul22,bul23,bul24,mine        ;191\n        dc.l bbul1,bbul2,bbul3,bbul4,luv1,luv2        ;197\n        dc.l bsh1,bsh2,bsh3,bsh4,bsh5,bsh6,bsh7,bsh8        ;205\n        dc.l teap1,teap2,teap3,teap4,eyb2,eyb1,eyb3,eyb3        ;213\n        dc.l lik2,lik1,lik3,lik3,ski2,ski1,ski3,ski3        ;221\n        dc.l gblok1,gblok2,fteeth1,fteeth2,fteeth3,fteeth2        ;227\n        dc.l fteeth4,gproj1,gproj2,aro1,aro2,aro3,aro4                ;234\n        dc.l lsplat1,lsplat2,lsplat3,lsplat4,robo1        ;239\n        dc.l wpod1,wpod2,lpod1,lpod2,hbike,hbike        ;245\n        dc.l f3way1,f3way2,smbom1,smbom2,invis1,invis2        ;251\n        dc.l mandy1,mandy2,mbuu1,mbuu2,bsi1,bsi2        ;257\n        dc.l bnus1,bnus2,trn1,trn2,trn3,trn4,trn5,trn6,trn7,trn8        ;267\n        dc.l saf1,saf2,saf3,w16ton,brolly1,brolly2,drop        ;274\n        dc.l camsaf1,camsaf2,camsaf3,camspit1,camspit2        ;279\n        dc.l ro1,ro2,ro3,ro4,bait1,bait2,bait3,bait4        ;287\n        dc.l scros1,scros2,sfhg1,sfhg2,sfhg3,sfhg2        ;293\n        dc.l sgun1,sgun2,sgun3,sgun4,gproj                ;298\n        dc.l nki1,nki2,nki3,nki4,nki5,nki6,nki7,nki8        ;306\n        dc.l nel1,nel2,nel3,strn1,strn2,strn3,strn4        ;313\n        dc.l strn5,strn6,strn7,strn8,tseg1,tseg2,tseg3,tseg4        ;321\n        dc.l tseg5,tseg6,tseg7,tseg8,thead,xxx1,xxx2,xxx3        ;329\n        dc.l lla4,lla3,lla2\n        dc.l lla1,lla5,lla6,lla7,lla8,lla9,lla10,lla11\n        dc.l lla12,lla13,lla14,lla15,lla16\n        dc.l p2cam1,p2cam2,p2cam3,p2cam4,p2cam5,p2cam6,p2cam7,p2cam8\n        dc.l p2cam9,p2cam10,p2cam11,p2cam12,p2cam13,p2cam14,p2cam15,p2cam16\n        dc.l droi1,droi2,droi3,mine,bul21,bul22,bul23,bul24\n        dc.l bbul1,bbul2,bbul3,bbul4,-1\n\"\"\".split('\\n')[1:-1]\nobjex_list = [w.strip() for l in objex for w in l[12:].split(';')[0].split(',')]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's use this list to create an equally monstrous sprite sheet.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x,y = 10,10\nPADDING = 18\nSCALE = 10\n\nscale_map = {0:10, 1:5, 3:1, 4:2, 5:1, 6:1, 19:1}\nimg = Image.new( 'RGB', (8 * SCALE * PADDING, (74 * PADDING * SCALE) + 40), color=\"black\") \ndraw = ImageDraw.Draw(img)\nfor i, sprite in enumerate(objex_list[:-1]):\n    _, sprite_type = sprite_definitions[sprite]\n    scale = scale_map[sprite_type]\n    sprite_image = draw_sprite(sprite, scale)\n    if i and i % 8 == 0:\n        x = 10\n        y += 280\n    img.paste(sprite_image, (x,y), mask=sprite_image)\n    draw.text((x + 40, y + 210), sprite, font_size=24, fill=\"white\")\n    x += sprite_image.width + 20\nImage.images = [img]\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "What about the ones that aren't in `objex_list`?",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "not_in_objex_list = [sprite for sprite in sprite_definitions if sprite not in objex_list]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's take a look.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x,y = 10,10\nPADDING = 18\nSCALE = 10\n\nscale_map = {0:10, 1:5, 3:1, 4:2, 5:1, 6:1, 19:1}\nimg = Image.new( 'RGB', (8 * SCALE * PADDING, (18 * PADDING * SCALE) + 40), color=\"black\") \ndraw = ImageDraw.Draw(img)\nfor i, sprite in enumerate(not_in_objex_list):\n    _, sprite_type = sprite_definitions[sprite]\n    scale = scale_map[sprite_type]\n    sprite_image = draw_sprite(sprite, scale)\n    if i and i % 8 == 0:\n        x = 10\n        y += 280\n    img.paste(sprite_image, (x,y), mask=sprite_image)\n    draw.text((x + 40, y + 210), sprite, font_size=24, fill=\"white\")\n    x += sprite_image.width + 20\nImage.images = [img]\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Some of those are too large for a meagre sprite sheet, so let's blow them up to get a better look.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('yakm')",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Sheep make good team players.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('teem')",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Even when paired up with droids.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('pldroid')",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "The fancy \"game over\" styling of the font is in fact a sprite in its own right.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('gover')",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "As is the 'Continue'? message.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('conti')",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "We also have a pair of cool customers.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('coolc1',5)",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('coolc2',5)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "This last one, called `topos`, looks like a placeholder sprite used to fill the space where the top panel would be. It's not actually used in the game itself - instead the fields are populated dynamically.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "draw_sprite('topos', forced_width=320)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## A Look at the Font",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Fonts are also sprites, but a single colour so simpler. The main difference is that we don't have to worry about color or width. Every character is 16 pixels wide and we can just treat any nibble that isn't `0000` as a pixel in our chose colour.\n\nWe can find all the character definitions for the font in `fonte.s`. So let's read them in.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "\"\"\"\nRead in all the character definitions in Llamatron's main source file `fonte.s` and turn them into a dictionary of\ncharacter names with the corresponding character definition data and the character type.\n\"\"\"\nfont_file = open(\"fonte.s\",'r')\nfontfile_lines = font_file.readlines()",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Inside this file we find definitions for individual glyphs. Here's what the glyph for 'A' looks like:",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "print(''.join(fontfile_lines[711:737]))",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's read in the rest of them and draw them properly.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "# Get a list of the character labels and their position in the file.\nchar_labels = [(x.split(':')[0], i) for i,x in enumerate(fontfile_lines) if \":\" in x]\n\ndef get_character_data(start, end):\n    \"\"\"\n    Turn raw lines of character data into a list of 16-bit integers that we\n    can use to create the character bitmaps.\n    \"\"\"\n    raw_character_data = [l for l in fontfile_lines[start+1:end] if l.strip() and ';' not in l]\n    character_data = [y.strip()[1:] for x in raw_character_data for y in x.strip()[4:].split(',')]\n    character_def_data = (\n            int(character_data[0],16),             # Type\n            int(character_data[1],16) + 1,             # Width\n            int(character_data[2],16) + 1,             # Height\n            [int(y,16) for y in character_data[3:]]\n    )\n    return character_def_data\n\n# Create a dictionary of character definitions keyed on character name.\ncharacter_definitions = {n: get_character_data(s,e) \n                      for (n,s),(_,e) in pairwise(char_labels + [(\"\",99999)])}",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Next we can adapt our sprite drawing function to take account of the simpler requirements, i.e. always 16 bits wide and only ever one colour.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "\ndef draw_character(character_name, scale=10, pixel_color=\"yellow\"):\n    \"\"\"\n    Given the name of a character, draw it.\n    \"\"\"\n    _, char_width, char_height, character_data = character_definitions[character_name]\n    data_width = 16\n    slice_len = 4\n\n    nibbles = []\n    for i in range(0, len(character_data), slice_len):\n        word_bits = tuple([format(b,f\"016b\") for b in character_data[i:i + slice_len]])\n        nibbles += [''.join(x) for x in zip(*word_bits)]\n        \n    character_lines = [nibbles[i:i+data_width] for i in range(0, len(nibbles), data_width)]\n    \n    height = len(character_lines)\n    img = Image.new( 'RGBA', (char_width, char_height))\n    pixels = img.load()\n    for y, line in enumerate(character_lines):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue\n            pixels[x,y] = ImageColor.getrgb(pixel_color)\n            \n    img = img.resize((img.width * scale, img.height * scale), Image.NEAREST)\n    return img",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Now we can draw any of the characters in the `fonte.s` file as follows:",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "Image.images = [draw_character('char_A')]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's draw all the characters we've slurped into `character_definitions` as a sprite map.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x,y = 10,10\nPADDING = 18\nSCALE = 10\n\nimg = Image.new( 'RGB', (8 * SCALE * PADDING, int(7.5 * PADDING * SCALE)), color=\"black\") \ndraw = ImageDraw.Draw(img)\nfor i, character in enumerate(list(character_definitions.keys())):\n    character_image = draw_character(character, SCALE)\n    if i and i % 8 == 0:\n        x = 10\n        y += 170\n    img.paste(character_image, (x,y), mask=character_image)\n    draw.text((x + 5, y + 120), character, font_size=18, fill=\"white\")\n    x += sprite_image.width + 20\nImage.images = [img]\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "# Printing Strings",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "We can make a quick and dirty function to print strings using our character set.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "First let's create a mapping between characters and the character names in our font set. For example 'A' and 'a' should map to `char_A`.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "# Add A-Z, a-z, and 0-9\nchar_names = {chr(i): f\"char_{chr(i).upper()}\" for i in list(range(97, 123)) + list(range(65, 91)) + list(range(48, 58))}\n# Add some other useful characters\nchar_names[' '] = \"char_blank\"\nchar_names['.'] = \"char_period\"\nchar_names[','] = \"char_comma\"\nchar_names['?'] = \"char_question\"\nchar_names['!'] = \"char_exclamation\"\nchar_names['('] = \"char_open_paren\"\nchar_names[')'] = \"char_close_paren\"\nchar_names['-'] = \"char_minus\"\nchar_names['/'] = \"char_slash\"\nchar_names['\"'] = \"char_quote\"\nchar_names[':'] = \"char_colon\"\n",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Now we can write a function to take in a string and print it out using our char set.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "list(zip([\"a,b,c\"],[\"yellow\"]))",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "def print_string(letters_and_colors, scale=10, forced_height=0):\n    image_width, image_height = 0,0\n    character_images = []\n    for i, (character, color) in enumerate(letters_and_colors):\n        char_name = char_names[character]\n        character_image = draw_character(char_name, scale, pixel_color=color)\n        character_images += [character_image]\n        image_width += character_image.width\n        image_height = max(image_height, character_image.height)\n\n    image_height = max(image_height, forced_height)\n    img = Image.new( 'RGB', (image_width, image_height + 10), color=\"black\") \n    x,y = 5,5\n    for character_image in character_images:\n        img.paste(character_image, (x,y), mask=character_image)\n        x += character_image.width - 10\n    return img",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Here's the first line of the llamatron scroller text.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "from itertools import cycle\nletters_and_colors = list(zip(\"llamatron version 1.0\", cycle([\"yellow\"])))\nletters_and_colors",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "Image.images = [print_string(letters_and_colors)]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "This approximates how the font is actually used in practice in Llamatron. Let's take a closer look at the gory details though.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Here's the chunk of text used to display the scrolling text at the start of the game.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```\nversion:        dc.b '\\\\c',15,'llamatron version 1.0\\\\r\\\\r\\\\c1'\n                dc.b 'this version at 20 march 1991\\\\r\\\\r\\\\c2'\n                dc.b '!!!read scroller at title screen for play details '\n                dc.b '(wait 1 min for scroller to happen)\\\\c2'\n                dc.b '\\\\r\\\\r\\\\c3use joystick to move beastie.  firing is '\n                dc.b 'automatic in the direction of travel. you use the '\n                dc.b 'fire button to lock the fire angle - so you can move '\n                dc.b 'and fire in opposite directions at will.\\\\r\\\\r\\\\c4'\n                dc.b 'if you have a suitable arrangement of two joysticks, '\n                dc.b 'you can play the game in original robotron style, with '\n                dc.b 'the usual stick moving the llama and stick 2 aiming '\n                dc.b 'the shots. press fire on stick 2 instead of stick 1 '\n                dc.b 'to start a game in that mode.\\\\r\\\\r'\n                dc.b 'within game press \\\\c1p\\\\c3 to pause the game. in the '\n                dc.b 'pausemode \\\\c1h\\\\c3 toggles 50/60 hz, \\\\c1s\\\\c3 turns '\n                dc.b 'samples on/off, \\\\c1t\\\\c3 displays an ozric tentacle '\n                dc.b 'you can weird with all of joystick 1, \\\\c1g\\\\c3 redisplays '\n                dc.b 'the game screen if you\"ve been looking at the tentacle, '\n                dc.b 'and \\\\c1o\\\\c3 unpauses the game!\\\\r\\\\r' \n                dc.b 'mission: rescue beasties and \\\\c1kill\\\\c3 everything else '\n                dc.b '(where possible).\\\\r\\\\r\\\\r'\n                dc.b '\\\\c2get beasties for bonus and \\\\c1hot bullets\\\\c2 - '\n                dc.b 'they last for a couple of seconds and slice through all '\n                dc.b 'enemies like a cat through butter.\\\\r\\\\r\\\\r'\n                dc.b 'collect \\\\c1last \\\\c2beastie for special bonus'\n                dc.b '\\\\r\\\\r\\\\r'\n                dc.b 'collect \\\\c1hearts\\\\c2 to make all the little beasties '\n                dc.b 'fall in love with you - they run towards you!\\\\r\\\\r'\n                dc.b 'game makes 160-byte file for hiscores on yer current '\n                dc.b 'dir.'\n                dc.b '\\\\r\\\\c',15,'good luck!!!'\n                dc.b '\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\e'\n```",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "It's clear there's a little template language going on in here. There are what looks like special sequences being used to do stuff.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": " For example, `\\\\c3use joystick to move beastie`. What is the `c3` doing?",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "We find out by looking at the `print` routine, it lists the meaning of all these escaped commands in the text strings we find throughout Llamatron.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```\nprint:         \n                ;\n                ; Print a string, with imbedded control commands.\n                ; Enter with the address of yer string in a0.\n                ; Commands are preceded by a \\ character. The following\n                ; are recognized: \n                ;\n                ; \\\\r  CR/LF\n                ; \\\\e  End printing\n                ; \\\\u, \\\\d, \\\\l, \\\\r  Move print position up, down, left, right\n                ; \\\\s Set font # (follow with numeric)\n                ; \\\\g Go to screen position (follow with 2 numerics)\n                ; \\n Print current value of NUMVAL.S, no trailing spaces\n                ; \\\\c Set text colour; -ve = original bitmap\n                ; \\\\q Draw text as centred on current v. line until 0\n                ; Before printing, set TXTMODE to hit the screen(s) you need\n                ; and set TXT_X and TXT_Y to screen position (or use \\\\g)\n                ;\n                ;\n\n                move.l #font,a3 ; a3 points to current font info\n                move (a3),d5 ; get vert step size\n                move txt_x,d0\n                move d0,retstart ; left margin preserve\n                move txt_y,d1 ; set up initial cursor position\n                move #0,d4 ; mask initially\n```",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "version_data = \"\"\"\nversion:        dc.b '\\\\c',15,'llamatron version 1.0\\\\r\\\\r\\\\c1'\n                dc.b 'this version at 20 march 1991\\\\r\\\\r\\\\c2'\n                dc.b '!!!read scroller at title screen for play details '\n                dc.b '(wait 1 min for scroller to happen)\\\\c2'\n                dc.b '\\\\r\\\\r\\\\c3use joystick to move beastie.  firing is '\n                dc.b 'automatic in the direction of travel. you use the '\n                dc.b 'fire button to lock the fire angle - so you can move '\n                dc.b 'and fire in opposite directions at will.\\\\r\\\\r\\\\c4'\n                dc.b 'if you have a suitable arrangement of two joysticks, '\n                dc.b 'you can play the game in original robotron style, with '\n                dc.b 'the usual stick moving the llama and stick 2 aiming '\n                dc.b 'the shots. press fire on stick 2 instead of stick 1 '\n                dc.b 'to start a game in that mode.\\\\r\\\\r'\n                dc.b 'within game press \\\\c1p\\\\c3 to pause the game. in the '\n                dc.b 'pausemode \\\\c1h\\\\c3 toggles 50/60 hz, \\\\c1s\\\\c3 turns '\n                dc.b 'samples on/off, \\\\c1t\\\\c3 displays an ozric tentacle '\n                dc.b 'you can weird with all of joystick 1, \\\\c1g\\\\c3 redisplays '\n                dc.b 'the game screen if you\"ve been looking at the tentacle, '\n                dc.b 'and \\\\c1o\\\\c3 unpauses the game!\\\\r\\\\r'\n                dc.b 'mission: rescue beasties and \\\\c1kill\\\\c3 everything else '\n                dc.b '(where possible).\\\\r\\\\r\\\\r'\n                dc.b '\\\\c2get beasties for bonus and \\\\c1hot bullets\\\\c2 - '\n                dc.b 'they last for a couple of seconds and slice through all '\n                dc.b 'enemies like a cat through butter.\\\\r\\\\r\\\\r'\n                dc.b 'collect \\\\c1last \\\\c2beastie for special bonus'\n                dc.b '\\\\r\\\\r\\\\r'\n                dc.b 'collect \\\\c1hearts\\\\c2 to make all the little beasties '\n                dc.b 'fall in love with you - they run towards you!\\\\r\\\\r'\n                dc.b 'game makes 160-byte file for hiscores on yer current '\n                dc.b 'dir.'\n                dc.b '\\\\r\\\\c',15,'good luck!!!'\n                dc.b '\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\r\\\\e'\n\"\"\".split('\\n')[1:-1]\nversion_string = ''.join([l[22:-1] for l in version_data])\nversion_string = version_string.replace(\"\\',15,\\'\",\"f\")\nversion_string_bytes = bytes(version_string, \"utf-8\")",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "font_colors = [\"\", \"lightgreen\", \"red\", \"orange\", \"yellow\", \"blue\", \"blue\", \"grey\",\n               \"yellow\", \"red\", \"blue\", \"blue\", \"blue\", \"blue\", \"blue\", \"grey\"]\n\nstring = \"\"\ncolors = []\nLINE_LEN = 31\nimage_lines = []\nversion_string_iter = iter(version_string_bytes)\nwhile True:\n    b = next(version_string_iter)\n        \n    if b == 92:\n        c = chr(next(version_string_iter))\n        if c == \"c\":\n            color_val = int(chr(next(version_string_iter)),16)\n            color = font_colors[color_val]\n        elif c == \"r\":\n            letters = string.ljust(LINE_LEN)\n            letters_and_colors = list(zip(letters, cycle(colors)))\n            image_lines += [print_string(letters_and_colors, forced_height=110)]\n            string, colors = \"\", []\n        elif c == \"e\":\n            break\n        continue\n        \n    string += chr(b)\n    colors += [color]\n    if chr(b) != \" \":\n        continue\n        \n    if len(string) > LINE_LEN:\n        letters = string.ljust(LINE_LEN)\n        letters_and_colors = list(zip(letters, cycle(colors)))\n        image_lines += [print_string(letters_and_colors)]\n        string, colors = \"\", []\n\nimage_height = sum([img.height + 50 for img in image_lines])\nimage_width = max([img.width for img in image_lines]) + 150\nimg = Image.new( 'RGB', (image_width, image_height + 10), color=\"black\") \nx,y = 150,5\nfor image_line in image_lines:\n    img.paste(image_line, (x,y))\n    y += image_line.height + 50\nimg = img.resize((int(img.width / 3), int(img.height / 3)), Image.NEAREST)\nImage.images = [img]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## Draw the Title Marquee",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "The title marquee is made up of sprites `lla1` to `lla6`. The array `titty` gives the index in `objex` for each sprite in the title. We can extract the sprite names into a list as follows.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "titty = \"\"\"\ntitty:  dc.w -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 \n        dc.b 0,0,1,2,1,3,4,5,6,7\n\"\"\".split('\\n')[2:-1]\ntitle_list = [objex_list[int(b)] for l in titty for b in l[12:].split(',')]\ntitle_list",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Armed with this we can now draw the title.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x = 1\nimg = Image.new( 'RGBA', (len(title_list) * 6 * 20, 16 * 6))\nfor sprite in title_list:\n    simg = draw_sprite(sprite,6)\n    img.paste(simg, (x,1))\n    x += simg.width + 5\nImage.images = [img]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## Draw the Logo",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```asm\ndrawlogo:       lea objex,a3          ; Store ptr to objex array in a3.\n                move #1,d2\n                move #44,d1           ; 44 is our X position.\n                move #130,d0          ; 130 is our Y position\n                move #8,d5            ; Start from item 8 in objex.\ndrawl:          move d5,d6            ; Store index in d6.\n                asl #2,d6             ; Multiply it by 2.\n                move.l 0(a3,d6.w),a0  ; Use it to fetch the sprite from objex.\n                bsr syak              ; Draw the sprite\n                neg d4\n                bsr syak              ; Draw the sprite.\n                neg d4\n                add #16,d0            ; \n                add #1,d5             ; Increment the index.\n                cmp #13,d5            ; Have we reached item 13 yet?\n                bne drawl             ; If not, keep looping.\n                rts\n```",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "logo_list = [objex_list[i] for i in range(8,13)]\nlogo_list",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "x = 1\nimg = Image.new( 'RGBA', (len(title_list) * 6 * 20, 32 * 6))\nfor s in logo_list:\n    simg = draw_sprite(s,6)\n    img.paste(simg, (x,1))\n    x += simg.width - 6\nImage.images = [img]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "## A Listen to the Sound Samples",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "The sound effects for Lllamatron all live in a binary file called [`sonix2.spl`](https://github.com/mwenge/llamatron/blob/master/src/sonix2.spl). We can extract them from the original game binary of `rude_llamatron.prg` as follows.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "src_bytes = open(\"rude_llamatron.prg\",'rb').read()\nsound_bytes = src_bytes[0x96ac:0x4a1b0]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "The sound effects are all raw PCM (Pulse Code Muldation) data. We can play the samples all in one go as follows:",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "import IPython\nimport numpy as np\n\ndef convert_to_wav(sound_bytes):\n    data = [sound_bytes[i] for i in range(0,len(sound_bytes))]\n    scaled = np.int16(data/np.max(np.abs(data)) * 32767) \n    return scaled\n\ndef play_sample(sample):\n    IPython.display.display(IPython.display.Audio(sample, rate=10000))\n\nsample = convert_to_wav(sound_bytes)\nplay_sample(sample)",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "The code that plays these sound effects is in [`SASONIX.S`](https://github.com/mwenge/llamatron/blob/master/src/SASONIX.S) and it is here we find an array that tells us how to split these samples up into individual effects. It's lightly commented but we can see that it tells us the offset and length of each sound effect in the binary blob.",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "```asm\nsamtab:         \n                ;\n                ;table of samples:  asddress, then length\n\n                dc.l 0,10602\n                dc.l 11160,1116\n                dc.l 12276,5580\n                dc.l 17856,3069\n                dc.l 20646,1953\n                dc.l 22599,8091\n                dc.l 30690,12555\n                dc.l 43245,9207\n                dc.l 52452,8928\n                dc.l 61380,2511\n                dc.l 63891,3906 ;10\n                dc.l 67797,3627\n                dc.l 71424,2232\n                dc.l 73656,1116\n                dc.l 75051,1116\n                dc.l 76167,6417\n                dc.l 82584,10044\n                dc.l 92628,21483\n                dc.l 114111,10323\n                dc.l 124434,7812\n                dc.l 132246,20367 ;20\n                dc.l 152613,12276\n                dc.l 164840,43058\n                dc.l 82676*2,6329*2 ;baaa\n                dc.l 103628*2,4788*2\n                dc.l 89037*2,9589*2 ;25 ohyeah\n                dc.l 99118*2,4510*2 ;ooOOoo\n                dc.l 103628*2,4788*2 ;'mooOOoo'\n                dc.l 108383*2,7703*2 ;'i love u'\n                dc.l 116056*2,10679*2 ;'oh f*ck'\n                dc.l 126639*2,30270*2 ;'aaaaagghh' 30\n                dc.l 120297*2,6435*2 ;'f*ck'\n                dc.l 116113*2,4155*2 ;oh\n```",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Let's convert this into a list we can use to extract the individual effects.",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "sample_table = [\n    (0,10602),\n    (11160,1116),\n    (12276,5580),\n    (17856,3069),\n    (20646,1953),\n    (22599,8091),\n    (30690,12555),\n    (43245,9207),\n    (52452,8928),\n    (61380,2511),\n    (63891,3906),\n    (67797,3627),\n    (71424,2232),\n    (73656,1116),\n    (75051,1116),\n    (76167,6417), # Bluuuurp.\n    (82584,10044), # Baaah.\n    (92628,21483), # \"Oh yeah\"\n    (114111,10323), # \"Oh Fuck!\"\n    (124434,7812),  # \"Ahahahhhhhhh\"\n    (132246,20367), # \"Ahahahhhhhhh\"\n    (152613,12276), # \"Bollocks\"\n    (164840,43058), # \"Pissflaps. Cunt cunt cunt cunt\"\n    (82676*2,6329*2), # \"Pissflaps\"\n    (103628*2,4788*2), # \"Cunt\"\n    (89037*2,9589*2), # \"Cunt cunt cunt cunt\"\n    (99118*2,4510*2), # \"Cunt\"\n    (103628*2,4788*2), # \"Cunt\"\n    (108383*2,7703*2), # \"Cunt Fucking Shit\"\n    (116056*2,10679*2), # \"You Bastard\"\n    (126639*2,30270*2), # \"Fuck Pig\"\n    (120297*2,6435*2), # \"You Bastard.\"\n    (116113*2,4155*2), # \"It's you\"\n]",
+            "collapsed": false
+        },
+        {
+            "type": "markdown",
+            "source": "Now we can play one at random. Let's try sample 31: \"You Bastard.\"",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "def get_sample_table_entry(entry_num):\n    start, length = sample_table[entry_num]\n    sample_bytes = sound_bytes[start:start + length]\n    return convert_to_wav(sample_bytes)\n\nsample = get_sample_table_entry(31)\nplay_sample(sample)",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "sample = get_sample_table_entry(30)\nplay_sample(sample)",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "sample = get_sample_table_entry(32)\nplay_sample(sample)",
+            "collapsed": false
+        },
+        {
+            "type": "code",
+            "source": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+            "collapsed": false
+        }
+    ],
+    "updated": 1789319015989
+}

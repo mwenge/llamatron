@@ -663,6 +663,8 @@ html[data-theme="dark"]{--on-accent:#141008;--paper:#0E0F0D;--sheet-line:rgba(23
 <input type="file" id="fileIpynb" accept=".ipynb,application/json" hidden>
 <input type="file" id="fileData" multiple hidden>
 
+<script src="files.js"></script>
+<script src="llamatron_insides.json"></script>
 <script>
 "use strict";
 (function(){
@@ -707,6 +709,25 @@ def _emit_fig(fig):
     b = io.BytesIO()
     fig.savefig(b, format="png", bbox_inches="tight", dpi=110)
     _OUT.append({"kind":"image", "mime":"image/png", "b64":base64.b64encode(b.getvalue()).decode("ascii")})
+
+def _emit_img(img):
+    b = io.BytesIO()
+    img.save(b, format="png")
+    _OUT.append({"kind":"image", "mime":"image/png", "b64":base64.b64encode(b.getvalue()).decode("ascii")})
+
+def _capture_open_imgs(close=True):
+    if "PIL" not in sys.modules: return 0
+    try:
+        from PIL import Image
+    except Exception:
+        return 0
+    _flush_streams()
+    for img in Image.images:
+        try: _emit_img(img)
+        except Exception: pass
+    num = len(Image.images)
+    Image.images = []
+    return num
 
 def _capture_open_figs(close=True):
     if "matplotlib" not in sys.modules: return 0
@@ -835,6 +856,7 @@ async def _kernel_run(src):
         _install_mpl_hooks()
         _flush_streams()
         _capture_open_figs(close=True)
+        _capture_open_imgs(close=True)
         if val is not None:
             _KNS["_"] = val
             _emit_obj(val)
@@ -1748,6 +1770,25 @@ async function bootKernel(){
     console.error(err);
   }finally{ progressOff(); }
 }
+
+function loadFiles(){
+	let enc = new TextEncoder("utf-8"); // always utf-8
+	for(const f of exampleFiles){
+		try{
+			const TEXT=["csv","tsv","tab","txt","md","log","json","py","yaml","yml","html","xml", "s"];
+			const buf=new Uint8Array(Uint8Array.fromBase64(f.data));
+			pyodide.FS.writeFile(f.name, buf);
+			let preview="";
+			if(TEXT.includes(fileExt(f.name))){
+				try{ preview=new TextDecoder("utf-8",{fatal:false}).decode(buf.slice(0,8192)).slice(0,4000); }catch(_){ }
+			}
+			const rec={name:f.name, size: buf.length, type:"", preview};
+			const ent=dataEntry(f.name);
+			if(ent) Object.assign(ent, rec); else dataFiles.push(rec);
+		}catch(err){ toast("Could not mount "+esc(f.name),"err"); console.error(err); }
+}
+
+}
 async function loadExtras(){
   // background, lock-serialized so it never collides with a user run
   try{ await ensureMicropip(); }catch(e){ console.warn("micropip unavailable", e); }
@@ -1756,6 +1797,7 @@ async function loadExtras(){
     await runPy("import micropip\nawait micropip.install(list(__jedi_pkgs))\nimport jedi");
     jediReady=true;
     if(kernelInfoHasVer()) $("#kernelInfo").textContent += " · autocomplete ready";
+		loadFiles();
   }catch(e){ jediReady=false; console.warn("jedi unavailable; autocomplete uses a basic fallback", e); }
 }
 function kernelInfoHasVer(){ return /Python/.test($("#kernelInfo").textContent||""); }
@@ -1946,8 +1988,16 @@ let persistTimer=null;
 function schedulePersist(){ markSaving(); clearTimeout(persistTimer); persistTimer=setTimeout(persist, 400); }
 
 function readLib(){
-  try{ const r=localStorage.getItem(LIB_KEY); if(!r) return null; const d=JSON.parse(r); if(!d||!Array.isArray(d.notebooks)) return null; return d; }catch(e){ return null; }
+  try{ 
+		const r=localStorage.getItem(LIB_KEY); 
+		if(!r) return null;
+		const d=JSON.parse(r);
+		if(!d||!Array.isArray(d.notebooks)) return null;
+		return d; 
+	}
+	catch(e){ return null; }
 }
+
 function writeLib(lib){ try{ localStorage.setItem(LIB_KEY, JSON.stringify(lib)); }catch(e){} }
 function libEntry(id){ const lib=readLib(); return lib?lib.notebooks.find(n=>n.id===id):null; }
 
@@ -2002,12 +2052,10 @@ function migrateLegacy(lib){
 /* called once at startup: ensure a library exists and load the current notebook */
 function initLibrary(){
   let lib=readLib();
-  if(!lib){ lib={notebooks:[], current:null}; migrateLegacy(lib); writeLib(lib); }
-  if(!lib.notebooks.length){
-    const id=nuid(), now=Date.now();
-    lib.notebooks.push({id, name:"Untitled", updated:now});
-    lib.current=id; writeLib(lib);
-    localStorage.setItem(nbKey(id), JSON.stringify({ v:2, name:"Untitled", cells:[{type:"code",source:"",collapsed:false}], updated:now }));
+	if(!lib) {
+		lib = default_notebook;
+		writeLib(default_notebook); 
+    localStorage.setItem(nbKey("llamatron_notebook"), JSON.stringify(llamatron_notebook));
   }
   const cur=(lib.current && lib.notebooks.some(n=>n.id===lib.current)) ? lib.current : lib.notebooks[0].id;
   applyNotebook(cur);
@@ -2238,6 +2286,8 @@ $("#fileIpynb").addEventListener("change", e=>{
   r.onerror=()=>toast("Could not read file.","err");
   r.readAsText(f); e.target.value="";
 });
+
+
 $("#fileData").addEventListener("change", async e=>{
   const files=[...e.target.files]; if(!files.length) return;
   if(!kernelReady){ toast("Kernel still booting — one moment.","err"); e.target.value=""; return; }
