@@ -117,7 +117,7 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "# Create a look-up table for our RGB values.\nrgb_palette = {format(i,f\"004b\") : tuple([get_rgb(int(n,16)) for n in w])\n               for i, w in enumerate(color_words)}\n\nimg = Image.new( 'RGBA', (16, 1))\npixels = img.load()\nfor x, bit in enumerate(nibbles):\n    if bit == \"0000\": continue   # Ignore background pixels\n    pixel_color = rgb_palette[bit]\n    pixels[x,0] = pixel_color\nimg = img.resize((img.width * 10, img.height * 10), Image.NEAREST)\nImage.images = [img]",
+            "source": "# Create a look-up table for our RGB values.\nrgb_palette = {format(i,f\"004b\") : tuple([get_rgb(int(n,16)) for n in w])\n               for i, w in enumerate(color_words)}\n\nimg = Image.new( 'RGBA', (16, 1), color='black')\npixels = img.load()\nfor x, bit in enumerate(nibbles):\n    if bit == \"0000\": continue   # Ignore background pixels\n    pixel_color = rgb_palette[bit]\n    pixels[x,0] = pixel_color\nimg = img.resize((img.width * 10, img.height * 10), Image.NEAREST)\nImage.images = [img]",
             "collapsed": false
         },
         {
@@ -127,7 +127,7 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "WIDTH = 16\ndef draw_llama_sprite(sprite_data, num_lines):\n    NUM_WORDS = 4\n    words_to_read = num_lines * NUM_WORDS\n\n    nibbles = []\n    # Work through the sprite data 4 words at a time, transforming each quartet of 16-bit words\n    # into a 16 element list of 4-bit integers.\n    for i in range(0, len(sprite_data[:words_to_read]), NUM_WORDS):\n        bits = tuple([format(b,f\"016b\") for b in reversed(sprite_data[i:i + NUM_WORDS])])\n        nibbles += [[''.join(x) for x in zip(*bits)]]\n\n    # Use our list to draw the lienes of the sprite.\n    img = Image.new( 'RGBA', (WIDTH, num_lines))\n    pixels = img.load()\n    for y, line in enumerate(nibbles):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue   # Ignore background pixels\n            pixel_color = rgb_palette[bit]\n            pixels[x,y] = pixel_color\n    img = img.resize((img.width * 10, img.height * 10), Image.NEAREST)\n    Image.images += [img]\n\ndraw_llama_sprite(lla1_list, 4)",
+            "source": "WIDTH = 16\ndef draw_llama_sprite(sprite_data, num_lines):\n    NUM_WORDS = 4\n    words_to_read = num_lines * NUM_WORDS\n\n    nibbles = []\n    # Work through the sprite data 4 words at a time, transforming each quartet of 16-bit words\n    # into a 16 element list of 4-bit integers.\n    for i in range(0, len(sprite_data[:words_to_read]), NUM_WORDS):\n        bits = tuple([format(b,f\"016b\") for b in reversed(sprite_data[i:i + NUM_WORDS])])\n        nibbles += [[''.join(x) for x in zip(*bits)]]\n\n    # Use our list to draw the lienes of the sprite.\n    img = Image.new( 'RGBA', (WIDTH, num_lines),color='black')\n    pixels = img.load()\n    for y, line in enumerate(nibbles):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue   # Ignore background pixels\n            pixel_color = rgb_palette[bit]\n            pixels[x,y] = pixel_color\n    img = img.resize((img.width * 10, img.height * 10), Image.NEAREST)\n    Image.images += [img]\n\ndraw_llama_sprite(lla1_list, 4)",
             "collapsed": false
         },
         {
@@ -177,7 +177,7 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "from PIL import Image, ImageColor, ImageFont, ImageDraw\n\n# Create a look-up table for our RGB values.\nrgb_palette = {format(i,f\"004b\") : tuple([get_rgb(int(n,16)) for n in w])\n               for i, w in enumerate(color_words)}\n\n# A hack for the width of the sprite until I figure out the right way.\nwidth_map = {0:16, 1:32, 3:64, 4:80, 5:96, 6:112, 19:160}\ndef draw_sprite(sprite_name, scale=10, forced_width=None):\n    \"\"\"\n    Given the name of a sprite, draw it.\n    \"\"\"\n    (_, sprite_data), sprite_type = sprite_definitions[sprite_name]\n    width = width_map[sprite_type] if not forced_width else forced_width\n    slice_len = 4\n\n    nibbles = []\n    for i in range(0, len(sprite_data), slice_len):\n        word_bits = tuple([format(b,f\"016b\") for b in reversed(sprite_data[i:i + slice_len])])\n        nibbles += [''.join(x) for x in zip(*word_bits)]\n        \n    sprite_lines = [nibbles[i:i+width] for i in range(0, len(nibbles), width)]\n    \n    height = len(sprite_lines)\n    img = Image.new( 'RGBA', (width, height))\n    pixels = img.load()\n    for y, line in enumerate(sprite_lines):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue\n            pixel_color = rgb_palette[bit]\n            pixels[x,y] = pixel_color\n            \n    img = img.resize((img.width * scale, img.height * scale), Image.NEAREST)\n    Image.images += [img]\n    return img",
+            "source": "from PIL import Image, ImageColor, ImageFont, ImageDraw\n\n# Create a look-up table for our RGB values.\nrgb_palette = {format(i,f\"004b\") : tuple([get_rgb(int(n,16)) for n in w])\n               for i, w in enumerate(color_words)}\n\n# A hack for the width of the sprite until I figure out the right way.\nwidth_map = {0:16, 1:32, 3:64, 4:80, 5:96, 6:112, 19:160}\ndef draw_sprite(sprite_name, scale=10, forced_width=None):\n    \"\"\"\n    Given the name of a sprite, draw it.\n    \"\"\"\n    (_, sprite_data), sprite_type = sprite_definitions[sprite_name]\n    width = width_map[sprite_type] if not forced_width else forced_width\n    slice_len = 4\n\n    nibbles = []\n    for i in range(0, len(sprite_data), slice_len):\n        word_bits = tuple([format(b,f\"016b\") for b in reversed(sprite_data[i:i + slice_len])])\n        nibbles += [''.join(x) for x in zip(*word_bits)]\n        \n    sprite_lines = [nibbles[i:i+width] for i in range(0, len(nibbles), width)]\n    \n    height = len(sprite_lines)\n    img = Image.new( 'RGBA', (width, height), color='black')\n    pixels = img.load()\n    for y, line in enumerate(sprite_lines):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue\n            pixel_color = rgb_palette[bit]\n            pixels[x,y] = pixel_color\n            \n    img = img.resize((img.width * scale, img.height * scale), Image.NEAREST)\n    Image.images += [img]\n    return img",
             "collapsed": false
         },
         {
@@ -392,7 +392,7 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "\ndef draw_character(character_name, scale=10, pixel_color=\"yellow\"):\n    \"\"\"\n    Given the name of a character, draw it.\n    \"\"\"\n    _, char_width, char_height, character_data = character_definitions[character_name]\n    data_width = 16\n    slice_len = 4\n\n    nibbles = []\n    for i in range(0, len(character_data), slice_len):\n        word_bits = tuple([format(b,f\"016b\") for b in character_data[i:i + slice_len]])\n        nibbles += [''.join(x) for x in zip(*word_bits)]\n        \n    character_lines = [nibbles[i:i+data_width] for i in range(0, len(nibbles), data_width)]\n    \n    height = len(character_lines)\n    img = Image.new( 'RGBA', (char_width, char_height))\n    pixels = img.load()\n    for y, line in enumerate(character_lines):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue\n            pixels[x,y] = ImageColor.getrgb(pixel_color)\n            \n    img = img.resize((img.width * scale, img.height * scale), Image.NEAREST)\n    return img",
+            "source": "\ndef draw_character(character_name, scale=10, pixel_color=\"yellow\"):\n    \"\"\"\n    Given the name of a character, draw it.\n    \"\"\"\n    _, char_width, char_height, character_data = character_definitions[character_name]\n    data_width = 16\n    slice_len = 4\n\n    nibbles = []\n    for i in range(0, len(character_data), slice_len):\n        word_bits = tuple([format(b,f\"016b\") for b in character_data[i:i + slice_len]])\n        nibbles += [''.join(x) for x in zip(*word_bits)]\n        \n    character_lines = [nibbles[i:i+data_width] for i in range(0, len(nibbles), data_width)]\n    \n    height = len(character_lines)\n    img = Image.new( 'RGBA', (char_width, char_height), color='black')\n    pixels = img.load()\n    for y, line in enumerate(character_lines):\n        for x, bit in enumerate(line):\n            if bit == \"0000\": continue\n            pixels[x,y] = ImageColor.getrgb(pixel_color)\n            \n    img = img.resize((img.width * scale, img.height * scale), Image.NEAREST)\n    return img",
             "collapsed": false
         },
         {
@@ -532,7 +532,7 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "x = 1\nimg = Image.new( 'RGBA', (len(title_list) * 6 * 20, 16 * 6))\nfor sprite in title_list:\n    simg = draw_sprite(sprite,6)\n    img.paste(simg, (x,1))\n    x += simg.width + 5\nImage.images = [img]",
+            "source": "x = 1\nimg = Image.new( 'RGBA', (len(title_list) * 6 * 20, 16 * 6), color='black')\nfor sprite in title_list:\n    simg = draw_sprite(sprite,6)\n    img.paste(simg, (x,1))\n    x += simg.width + 5\nImage.images = [img]",
             "collapsed": false
         },
         {
@@ -552,7 +552,7 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "x = 1\nimg = Image.new( 'RGBA', (len(title_list) * 6 * 20, 32 * 6))\nfor s in logo_list:\n    simg = draw_sprite(s,6)\n    img.paste(simg, (x,1))\n    x += simg.width - 6\nImage.images = [img]",
+            "source": "x = 1\nimg = Image.new( 'RGBA', (len(title_list) * 6 * 20, 32 * 6), color='black')\nfor s in logo_list:\n    simg = draw_sprite(s,6)\n    img.paste(simg, (x,1))\n    x += simg.width - 6\nImage.images = [img]",
             "collapsed": false
         },
         {
