@@ -184,6 +184,7 @@ body{
 .out-stream.stderr pre{color:var(--busy)}
 .out-err{background:var(--err-weak)}
 .out-err pre{color:var(--err)}
+.out-audio{text-align:center; background:var(--surface)}
 .out-img{text-align:center; background:var(--surface)}
 .out-img img{max-width:100%; height:auto; border:1px solid var(--line); border-radius:3px; background:#fff}
 .out-frame{background:var(--surface); text-align:left}
@@ -715,6 +716,21 @@ def _emit_img(img):
     img.save(b, format="png")
     _OUT.append({"kind":"image", "mime":"image/png", "b64":base64.b64encode(b.getvalue()).decode("ascii")})
 
+def _emit_audio_sample(sample):
+    _OUT.append({"kind":"audio", "mime":"audio/wav", "b64":base64.b64encode(sample).decode("ascii")})
+
+def _capture_open_audio_samples():
+    try:
+        import IPython
+    except Exception:
+        return 0
+    for sample in IPython.display.Audio.Samples:
+        try: _emit_audio_sample(sample)
+        except Exception: pass
+    num = len(IPython.display.Audio.Samples)
+    IPython.display.Audio.Samples = []
+    return num
+
 def _capture_open_imgs(close=True):
     if "PIL" not in sys.modules: return 0
     try:
@@ -857,6 +873,7 @@ async def _kernel_run(src):
         _flush_streams()
         _capture_open_figs(close=True)
         _capture_open_imgs(close=True)
+        _capture_open_audio_samples()
         if val is not None:
             _KNS["_"] = val
             _emit_obj(val)
@@ -1411,6 +1428,12 @@ function renderOutputs(cell){
     else if(o.kind==="text"){ d.className="out out-text"; d.innerHTML="<pre>"+esc(o.text)+"</pre>"; }
     else if(o.kind==="error"){ d.className="out out-err"; d.innerHTML="<pre>"+esc(stripAnsi(o.text))+"</pre>"; }
     else if(o.kind==="image"){ d.className="out out-img"; d.innerHTML='<img alt="figure" src="data:'+(o.mime||"image/png")+";base64,"+o.b64+'">'; }
+    else if(o.kind==="audio"){ d.className="out out-audio"; d.innerHTML=`
+<audio controls="controls">
+    <source src="data:`+(o.mime||"audio/wav")+";base64,"+o.b64+`" type="audio/wav">
+    Your browser does not support the audio element.
+</audio>
+`; }
     else if(o.kind==="html"){ d.className="out out-html"; d.innerHTML=sanitizeHtml(o.html); }
     else if(o.kind==="iframe_html"){
       d.className="out out-frame";

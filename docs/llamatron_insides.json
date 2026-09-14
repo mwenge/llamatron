@@ -577,7 +577,31 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "import IPython\nimport numpy as np\n\ndef convert_to_wav(sound_bytes):\n    data = [sound_bytes[i] for i in range(0,len(sound_bytes))]\n    scaled = np.int16(data/np.max(np.abs(data)) * 32767) \n    return scaled\n\ndef play_sample(sample):\n    IPython.display.display(IPython.display.Audio(sample, rate=10000))\n\nsample = convert_to_wav(sound_bytes)\nplay_sample(sample)",
+            "source": `import IPython
+import numpy as np
+import wave
+import io
+
+def convert_to_wav(pcm_data):
+    # Create an in-memory byte stream
+    data = [pcm_data[i] for i in range(0,len(pcm_data))]
+    scaled = np.int16(data/np.max(np.abs(data)) * 32767) 
+    with io.BytesIO() as wav_stream:
+        # Create a wave write object
+        with wave.open(wav_stream, 'wb') as wav_file:
+            # Set parameters: channels, sample width, frame rate, number of frames
+            wav_file.setnchannels(1)  # Mono
+            wav_file.setsampwidth(2)  # 16-bit
+            wav_file.setframerate(10000)  # Sample rate
+            wav_file.writeframes(scaled.tobytes())  # Write PCM data
+    
+        # Get the WAV data from the stream
+        wav_data = wav_stream.getvalue()
+    return wav_data
+
+sample = convert_to_wav(sound_bytes)
+IPython.display.Audio.Samples = [sample]
+`,
             "collapsed": false
         },
         {
@@ -607,17 +631,17 @@ const llamatron_notebook =
         },
         {
             "type": "code",
-            "source": "def get_sample_table_entry(entry_num):\n    start, length = sample_table[entry_num]\n    sample_bytes = sound_bytes[start:start + length]\n    return convert_to_wav(sample_bytes)\n\nsample = get_sample_table_entry(31)\nplay_sample(sample)",
+            "source": "def get_sample_table_entry(entry_num):\n    start, length = sample_table[entry_num]\n    sample_bytes = sound_bytes[start:start + length]\n    return convert_to_wav(sample_bytes)\n\nsample = get_sample_table_entry(31)\nIPython.display.Audio.Samples = [sample]",
             "collapsed": false
         },
         {
             "type": "code",
-            "source": "sample = get_sample_table_entry(30)\nplay_sample(sample)",
+            "source": "sample = get_sample_table_entry(30)\nIPython.display.Audio.Samples = [sample]",
             "collapsed": false
         },
         {
             "type": "code",
-            "source": "sample = get_sample_table_entry(32)\nplay_sample(sample)",
+            "source": "sample = get_sample_table_entry(32)\nIPython.display.Audio.Samples = [sample]",
             "collapsed": false
         },
         {
