@@ -602,6 +602,7 @@ html[data-theme="dark"]{--on-accent:#141008;--paper:#0E0F0D;--sheet-line:rgba(23
   <span id="saveState" class="save-state"></span>
   <span id="kernelInfo">Pyodide · loading</span>
   <span class="lnk" id="btnHelp">⌘ shortcuts</span>
+  <button class="dd-theme" id="dna-th-btn" title="Theme (Alt+T)">◐</button>
 </footer>
 
 <div class="toast-host" id="toastHost"></div>
@@ -2642,11 +2643,6 @@ window.addEventListener('ut-theme',function(){
   <ul id="dna-sw-list"></ul>
   <div class="ft"><span>↑↓ ↵ · ESC</span><span>ALT+[ ] STEP · ALT+I INDEX</span></div>
 </div>
-<div id="dna-dock" aria-label="Suite navigation">
-  <a class="dd-home" href="index.html" title="Project page (Alt+I)"><span class="dd-mark">⌖</span>INDEX</a>
-  <button class="dd-pos" id="dna-sw-btn" title="Switch instrument (Alt+K)">··/··</button>
-  <button class="dd-theme" id="dna-th-btn" title="Theme (Alt+T)">◐</button>
-</div>
 <script>
 (function(){
 var BASE='';
@@ -2656,7 +2652,6 @@ var cur=SUITE.findIndex(function(t){return t[0]===here});
 function $(id){return document.getElementById(id)}
 var pos=$('dna-sw-btn'),th=$('dna-th-btn'),sw=$('dna-switch'),q=$('dna-sw-q'),list=$('dna-sw-list');
 function pad(n){return String(n).padStart(2,'0')}
-function setPos(){pos.textContent=(cur>=0?pad(cur+1):'··')+'/'+pad(SUITE.length)}
 function setTh(){th.textContent=document.documentElement.dataset.theme==='dark'?'◑':'◐'}
 function go(f){location.href=BASE+f}
 function step(d){if(!SUITE.length)return;var i=cur>=0?(cur+d+SUITE.length)%SUITE.length:0;go(SUITE[i][0])}
@@ -2671,7 +2666,6 @@ function render(){
 }
 function openSw(){sw.classList.add('open');q.value='';sel=cur>=0?cur:0;render();q.focus();var el=list.querySelector('.sel');if(el)el.scrollIntoView({block:'center'})}
 function closeSw(){sw.classList.remove('open');q.blur()}
-pos.addEventListener('click',function(){sw.classList.contains('open')?closeSw():openSw()});
 function flipTheme(){var t=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('ut-theme',t)}catch(e){}document.documentElement.dataset.theme=t;setTh();try{window.dispatchEvent(new CustomEvent('ut-theme',{detail:t}))}catch(e){}}
 th.addEventListener('click',flipTheme);
 list.addEventListener('click',function(e){var li=e.target.closest('li');if(li)go(li.getAttribute('data-f'))});
@@ -2697,7 +2691,6 @@ try{fetch(BASE+'index.html').then(function(r){return r.text()}).then(function(t)
   if(m){var arr=new Function('return ['+m[1]+']')();
     if(arr&&arr.length){SUITE=arr.map(function(o){return[o.file,o.name]});cur=SUITE.findIndex(function(t){return t[0]===here});setPos();render()}}
 }).catch(function(){})}catch(e){}
-setPos();setTh();render();
 })();
 </script>
 </body>
