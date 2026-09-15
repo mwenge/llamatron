@@ -2024,7 +2024,7 @@ function readLib(){
 function writeLib(lib){ try{ localStorage.setItem(LIB_KEY, JSON.stringify(lib)); }catch(e){} }
 function libEntry(id){ const lib=readLib(); return lib?lib.notebooks.find(n=>n.id===id):null; }
 
-function cellPayload(){ return cells.map(c=>({type:c.type, source:c.taEl?c.taEl.value:c.source, collapsed:!!c.collapsed})); }
+function cellPayload(){ return cells.map(c=>({type:c.type, source:c.taEl?c.taEl.value:c.source, outputs: c.outputs, collapsed:!!c.collapsed})); }
 
 function persist(){
   if(!nbId) return;
@@ -2051,7 +2051,7 @@ function applyNotebook(id){
   const ent=libEntry(id);
   nbId=id; nbName=(ent&&ent.name)||(data&&data.name)||"Untitled";
   const list=(data&&data.cells&&data.cells.length)?data.cells:[{type:"code",source:"",collapsed:false}];
-  cells=list.map(c=>{ const cell=mkCell(c.type==="markdown"?"markdown":"code", c.source||""); cell.collapsed=!!c.collapsed; return cell; });
+  cells=list.map(c=>{ const cell=mkCell(c.type==="markdown"?"markdown":"code", c.source||""); cell.outputs=c.outputs; cell.collapsed=!!c.collapsed; return cell; });
   selectedId=null; execCounter=0;
   setNbTitle();
 }
